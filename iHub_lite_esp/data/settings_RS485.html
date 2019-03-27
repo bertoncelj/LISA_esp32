@@ -1,0 +1,236 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+
+<head>
+  <link rel="stylesheet" type="text/css" href="light_style.css">
+  <title>Iskra iHUB Lite
+  </title>
+</head>
+
+<body>
+  <iframe name="hiddenFrame" style="width:0;height:0;border:0; border:none; display:none;"></iframe>
+  <div id="loader" class="loader" style="display:block" ></div>
+  <table id="t01">
+    <tbody>
+      <tr style="font-weight: bold; font-size: 200%; font-family: Verdana;text-align: center;">
+        <td>
+          <img src="iskra_logo1.jpg" alt="Iskra"></td>
+        <td></td>
+        <td>iHUB SETTINGS</td>
+      </tr>
+      <tr>
+        <th>
+        </th>
+        <th>
+        </th>
+        <th>
+        </th>
+      </tr>
+      <tr style="height: 10px;"><td></td></tr>
+      <tr>
+        <td valign="top">
+          <div class="vertical-menu">
+            <a href="/index.html">iHUB status</a>
+            <a href="/settings_general.html" class="active">iHUB Settings</a>
+            <a href="/rs485_devices.html">RS485 Devices</a>
+            <a href="/wifi_devices.html">WiFi Devices</a>
+            <a href="/counters.html">Counters</a>
+            <a href="/measurements.html">Measurements</a>
+            <a href="/graph.html">Power Graph</a>
+            <a href="/demands.html">Max. Demands</a>
+            <a href="/settings.html">Device Settings</a>
+            <a href="/bicom.html">Bicom control</a>
+            <!--<a href="/edit">File Browser</a> -->
+            <a href="/update">Upgrade</a>
+          </div>
+        </td>
+        <td></td>
+        <td valign="top">        
+          <table id="t02">
+            <tr>
+              <div class="topnav">
+                <a href="/settings_general.html">General</a>
+                <a href="settings_communication.html">Communication</a>
+                <a href="settings_IR.html">IR Devices</a>
+                <a class="active" href="settings_RS485.html">RS485 Devices</a>
+              </div>
+              <h2></h2>
+              <form action="/settings_parse" target="hiddenFrame">
+              <div style="display:none;" id="devicesDiv" >
+                <fieldset>
+                  <legend>RS485 Baud Rate:</legend>
+                  <input id="rs485_baud_rate_1200" type="radio" name="rs485_baud_rate" value="0"> 1200 <br>
+                  <input id="rs485_baud_rate_2400" type="radio" name="rs485_baud_rate" value="1"> 2400 <br>
+                  <input id="rs485_baud_rate_4800" type="radio" name="rs485_baud_rate" value="2"> 4800 <br>
+                  <input id="rs485_baud_rate_9600" type="radio" name="rs485_baud_rate" value="3"> 9600 <br>
+                  <input id="rs485_baud_rate_19200" type="radio" name="rs485_baud_rate" value="4"> 19200 <br>
+                  <input id="rs485_baud_rate_38400" type="radio" name="rs485_baud_rate" value="5"> 38400 <br>
+                  <input id="rs485_baud_rate_57600" type="radio" name="rs485_baud_rate" value="6"> 57600 <br>
+                  <input id="rs485_baud_rate_115200" type="radio" name="rs485_baud_rate" value="7"> 115200 <br>
+                </fieldset>
+                <br>
+                <fieldset>
+                  <legend>RS485 Parity:</legend>
+                  <input id="rs485_parity_none" type="radio" name="rs485_parity" value="0"> None <br>
+                  <input id="rs485_parity_odd" type="radio" name="rs485_parity" value="1"> Odd <br>
+                  <input id="rs485_parity_even" type="radio" name="rs485_parity" value="3"> Even <br>
+                </fieldset>
+                <br>
+                <fieldset>
+                  <legend>RS485 Stop Bits:</legend>
+                  <input id="rs485_stop_bits_0" type="radio" name="rs485_stop_bits" value="0"> 1 <br>
+                  <input id="rs485_stop_bits_1" type="radio" name="rs485_stop_bits" value="1"> 2 <br>
+                </fieldset>
+                <br>
+                <fieldset>
+                  <legend>RS 485 Device 1 Type:</legend>
+                  <input id="rs485_device_type_1_nc" type="radio" name="rs485_device_type_1" value="0" onclick="if(this.checked){description_1_OFF()}"> Not Connected <br>
+                  <input id="rs485_device_type_1_ot" type="radio" name="rs485_device_type_1" value="1" onclick="if(this.checked){description_1_OFF()}"> Other Modbus Device <br>
+                  <input id="rs485_device_type_1_em" type="radio" name="rs485_device_type_1" value="2" onclick="if(this.checked){description_1_OFF()}"> Energy Meter <br>
+                  <input id="rs485_device_type_1_bs" type="radio" name="rs485_device_type_1" value="3" onclick="if(this.checked){description_1_ON()}"> Bistable Switch <br>
+                  <input id="rs485_device_type_1_pq" type="radio" name="rs485_device_type_1" value="4" onclick="if(this.checked){description_1_OFF()}"> PQ Meter <br>
+                <br>                
+                  <legend>RS 485 Device 1 Modbus Address:</legend>
+                  <input type="text" name="rs485_modbus_address_1" id="rs485_modbus_address_1" size="5" maxlength="3"> <br>
+                  <br>
+                  <legend>Bistable Switch 1 Description:</legend>
+                  <input type="text" name="rs485_description_1" id="rs485_description_1" size="20" maxlength="19"> <br>                  
+                </fieldset>
+                <br>
+                <fieldset>
+                  <legend>RS 485 Device 2 Type:</legend>
+                  <input id="rs485_device_type_2_nc" type="radio" name="rs485_device_type_2" value="0" onclick="if(this.checked){description_2_OFF()}"> Not Connected <br>
+                  <input id="rs485_device_type_2_ot" type="radio" name="rs485_device_type_2" value="1" onclick="if(this.checked){description_2_OFF()}"> Other Modbus Device <br>
+                  <input id="rs485_device_type_2_em" type="radio" name="rs485_device_type_2" value="2" onclick="if(this.checked){description_2_OFF()}"> Energy Meter <br>
+                  <input id="rs485_device_type_2_bs" type="radio" name="rs485_device_type_2" value="3" onclick="if(this.checked){description_2_ON()}"> Bistable Switch <br>
+                  <input id="rs485_device_type_2_pq" type="radio" name="rs485_device_type_2" value="4" onclick="if(this.checked){description_2_OFF()}"> PQ Meter <br>
+                <br>                
+                  <legend>RS 485 Device 2 Modbus Address:</legend>
+                  <input type="text" name="rs485_modbus_address_2" id="rs485_modbus_address_2" size="5" maxlength="3"> <br>
+                  <br>
+                  <legend>Bistable Switch 2 Description:</legend>
+                  <input type="text" name="rs485_description_2" id="rs485_description_2" size="20" maxlength="19"> <br>
+                </fieldset>
+                <br>
+                <input type="submit" value="Save settings" title="Press to send, then wait a few seconds" onclick="showLoader()" >
+              </div>
+              </form>
+            </tr>
+          </table>
+        </td>      
+    </tbody>
+  </table>
+  <script type="text/javascript">
+    var pollSettings = setInterval(updateData, 2000);
+    
+    function stopPollingSettings() {
+      clearInterval(pollSettings);
+    } 
+    
+    function showLoader() {      
+      console.log("showLoader()");        
+      document.getElementById("loader").style.display = 'block';
+      document.getElementById("devicesDiv").style.display = 'none';
+      pollSettings = setInterval(updateData, 2000);              
+    }
+    
+    function description_1_ON() {
+      console.log("description_1_ON()");
+      document.getElementById("rs485_description_1").disabled = false;          
+    }
+    
+    function description_1_OFF() {
+      console.log("description_1_OFF()");
+      document.getElementById("rs485_description_1").disabled = true;      
+    }
+    
+    function description_2_ON() {
+      console.log("description_2_ON()");
+      document.getElementById("rs485_description_2").disabled = false;          
+    }
+    
+    function description_2_OFF() {
+      console.log("description_2_OFF()");
+      document.getElementById("rs485_description_2").disabled = true;      
+    }
+
+    function updateData() {
+      console.log("updateData()");
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          console.log("updateData(): got Data:", this.responseText);
+          stopPollingSettings(); 
+          document.getElementById("loader").style.display = 'none';
+          document.getElementById("devicesDiv").style.display = 'block';
+          var measData = JSON.parse(this.responseText);
+          document.getElementById("rs485_modbus_address_1").value = measData.rs485_modbus_address_1;
+          document.getElementById("rs485_description_1").value = measData.rs485_description_1;
+          document.getElementById("rs485_modbus_address_2").value = measData.rs485_modbus_address_2;
+          document.getElementById("rs485_description_2").value = measData.rs485_description_2;
+
+          // Set RS485 Baud Rate
+          console.log("RS485 Baud rate:", measData.rs485_baud_rate);
+          var RS485BoudRateIds = ["rs485_baud_rate_1200", "rs485_baud_rate_2400", "rs485_baud_rate_4800",
+            "rs485_baud_rate_9600", "rs485_baud_rate_19200", "rs485_baud_rate_38400",
+            "rs485_baud_rate_57600", "rs485_baud_rate_115200"
+          ];
+          if (measData.rs485_baud_rate) {
+            document.getElementById(RS485BoudRateIds[measData.rs485_baud_rate]).checked = true;
+          }
+
+          // Set RS485 Parity
+          console.log("RS485 parity:", measData.rs485_parity);
+          RS485ParityIds = ["rs485_parity_none", "rs485_parity_odd", "rs485_parity_even"];
+          if (measData.rs485_parity) {
+            document.getElementById(RS485ParityIds[measData.rs485_parity]).checked = true;
+          }
+
+          // Set RS485 Parity
+          console.log("RS485 parity:", measData.rs485_parity);
+          RS485ParityIds = ["rs485_parity_none", "rs485_parity_odd", "rs485_parity_even"];
+          if (measData.rs485_parity) {
+            document.getElementById(RS485ParityIds[measData.rs485_parity]).checked = true;
+          }
+
+          // Set RS485 Stop bits Counter
+          console.log("RS485 stop bits:", measData.rs485_stop_bits);
+          RS485StopBitsIds = ["rs485_stop_bits_0", "rs485_stop_bits_1"];
+          if (measData.rs485_stop_bits) {
+            document.getElementById(RS485StopBitsIds[measData.rs485_stop_bits]).checked = true;
+          }
+
+          // Set RS485 Device 1 Type
+          console.log("RS485 device 1 type:", measData.rs485_device_type_1);
+          RS485DeviceTypeIds = ["rs485_device_type_1_nc", "rs485_device_type_1_ot", "rs485_device_type_1_em",
+            "rs485_device_type_1_bs", "rs485_device_type_1_pq"];
+          if (measData.rs485_device_type_1) {
+            document.getElementById(RS485DeviceTypeIds[measData.rs485_device_type_1]).checked = true;
+          }
+          if (measData.rs485_device_type_1 == 3)
+            description_1_ON();
+          else
+            description_1_OFF();
+
+          // Set RS485 Device 2 Type
+          console.log("RS485 device 2 type:", measData.rs485_device_type_2);
+          RS485DeviceType2Ids = ["rs485_device_type_2_nc", "rs485_device_type_2_ot", "rs485_device_type_2_em",
+            "rs485_device_type_2_bs", "rs485_device_type_2_pq"];
+          if (measData.rs485_device_type_2) {
+            document.getElementById(RS485DeviceType2Ids[measData.rs485_device_type_2]).checked = true;
+          }
+          if (measData.rs485_device_type_2 == 3)
+            description_2_ON();
+          else
+            description_2_OFF();
+        }
+      };
+      xhttp.open("GET", "/settings?_=" + new Date().getTime(), true); //add timestamp to avoid browser caching
+      xhttp.send();
+    }
+
+    updateData();
+  </script>
+</body>
+
+</html>

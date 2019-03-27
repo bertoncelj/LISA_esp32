@@ -1,0 +1,163 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="light_style.css">
+<title>Iskra iHUB Lite</title>
+</head>
+<body>
+<table id="t01">
+<tbody>
+<tr style="font-weight: bold; font-size: 200%; font-family: Verdana;text-align: center;">
+<td> <img src="iskra_logo1.jpg" alt="Iskra"></td>
+<td></td>
+<td>DEVICE SETTINGS</td>
+</tr>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+<tr style="height: 10px;"><td></td></tr>
+<tr>
+<td valign="top">
+<div class="vertical-menu">
+  <a href="/index.html">iHUB status</a>
+  <a href="/settings_general.html">iHUB Settings</a>
+  <a href="/rs485_devices.html">RS485 Devices</a>
+  <a href="/wifi_devices.html">WiFi Devices</a>   
+  <a href="/counters.html">Counters</a>  
+  <a href="/measurements.html">Measurements</a>
+  <a href="/graph.html">Power Graph</a>
+  <a href="/demands.html">Max. Demands</a>
+  <a href="/settings.html" class="active">Device Settings</a>  
+  <a href="/bicom.html">Bicom control</a>
+  <!--<a href="/edit">File Browser</a> -->
+  <a href="/update">Upgrade</a>
+</div>
+</td>
+<td></td>
+<td valign="top">
+<div id="no_settings_configured" style="display:none">
+<h2>No settings available or configuration error</h2>
+</div>
+<div id="settings" style="display:none">
+<table id="t02">
+<tr>
+<td class="t02Cell">Device type</td>
+<td style="font-size: 150%"><span id="model"></span></td>
+</tr>
+<tr>
+<th>Setting</th>
+<th>Value</th>
+</tr>
+<tr>
+<td class="t02Cell">Serial number</td>
+<td class="t02Cell"><span id="serial"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Description</td>
+<td class="t02Cell"><span id="description"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Location</td>
+<td class="t02Cell"><span id="location"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Software version</td>
+<td class="t02Cell"><span id="sw_version"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Software checksum</td>
+<td class="t02Cell"><span id="chksum"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Hardware version</td>
+<td class="t02Cell"><span id="hw_version"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Accuracy class</td>
+<td class="t02Cell"><span id="accuracy_class"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Calibration Voltage</td>
+<td class="t02Cell"><span id="calibration_u"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Calibration Current</td>
+<td class="t02Cell"><span id="calibration_i"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Communication COM1</td>
+<td class="t02Cell"><span id="communication"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Input / Output 1</td>
+<td class="t02Cell"><span id="io1"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Input / Output 2</td>
+<td class="t02Cell"><span id="io2"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Time</td>
+<td class="t02Cell"><span id="timestamp"></span></td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<script type="text/javascript">
+      function updateData() {
+        console.log("updateData()");
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+           console.log("updateData(): got Data:", this.responseText);
+           var measData = JSON.parse(this.responseText);
+           if( measData.model == 0)
+           {            
+            document.getElementById("no_settings_configured").style.display="block";
+            document.getElementById("settings").style.display="none";
+           }
+           else
+           {
+           var communication = ["-", "-","RS485","-","-","-","-","-","-","ИК","-","-","Z-Wave","M-BUS","-","-"];
+           var io = ["-","Analogue output - Unipolar","Analogue output - Bipolar","Analogue output","Pulse output","Tariff input","Bistabile alarm output","Relay output","Analogue output 20mA","Analogue input","Digital input","Pulse input","Pulse output (SO)","Analogue output (Fast)","Analogue output (Unipolar)","Watchdog output","-","COM2 (RS232)","COM2 (RS485)","-","COM2 - Output Ex.","Analogue output (Fast, Unipolar )","-","-","-","-","Load control output"];
+           document.getElementById("settings").style.display="block";
+           document.getElementById("no_settings_configured").style.display="none"; 
+           document.getElementById("model").innerHTML = measData.model;
+           document.getElementById("serial").innerHTML = measData.serial;
+           document.getElementById("description").innerHTML = measData.description;
+           document.getElementById("location").innerHTML = measData.location;           
+           document.getElementById("sw_version").innerHTML = measData.sw_version;
+           document.getElementById("chksum").innerHTML = measData.chksum;           
+           document.getElementById("hw_version").innerHTML = measData.hw_version;
+           document.getElementById("calibration_u").innerHTML = measData.calibration_u;
+           document.getElementById("calibration_i").innerHTML = measData.calibration_i;
+           document.getElementById("accuracy_class").innerHTML = measData.accuracy_class;           
+           if(measData.communication > 15)
+             document.getElementById("communication").innerHTML = "-";           
+           else 
+             document.getElementById("communication").innerHTML = communication[measData.communication];
+           if(measData.io1 > 26)
+            document.getElementById("io1").innerHTML = "-";
+           else                     
+            document.getElementById("io1").innerHTML = io[measData.io1];
+           if(measData.io2 > 26)
+            document.getElementById("io2").innerHTML = "-";
+           else
+             document.getElementById("io2").innerHTML = io[measData.io2];             
+           document.getElementById("timestamp").innerHTML = measData.local_time;              
+          }
+        }
+        };
+        xhttp.open("GET", "/device_settings?_=" + new Date().getTime(), true);//add timestamp to avoid browser caching
+        xhttp.send();
+      }
+      
+      updateData();
+      window.setInterval(updateData, 60000); //update settings every 60 seconds
+    </script>
+</body>
+</html>

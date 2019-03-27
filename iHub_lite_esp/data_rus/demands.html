@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="light_style.css">
+<title>Iskra iHUB Lite</title>
+</head>
+<body>
+<table id="t01">
+<tbody>
+<tr style="font-weight: bold; font-size: 200%; font-family: Verdana;text-align: center;">
+<td> <img src="iskra_logo1.jpg" alt="Iskra"></td>
+<td></td>
+<td>МАКСИМАЛЬНЫЕ ЗНАЧЕНИЯ</td>
+</tr>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+<tr style="height: 10px;"><td></td></tr>
+<tr>
+<td valign="top">
+<div class="vertical-menu">
+  <a href="/index.html">Статус iHUB</a>
+  <a href="/settings_general.html">Настройки iHUB</a>
+  <a href="/rs485_devices.html">Устройства RS485</a>
+  <a href="/wifi_devices.html"">Устройства Wifi</a>   
+  <a href="/counters.html">Счетчики</a>  
+  <a href="/measurements.html">Измерения</a>
+  <a href="/graph.html">График мощности</a>
+  <a href="/demands.html" class="active">Макс. значения</a>
+  <a href="/settings.html">Настройки устройства</a>  
+  <a href="/bicom.html">Управление Bicom</a>
+  <!--<a href="/edit">File Browser</a> -->
+  <a href="/update">Обновление</a>
+</div>
+</td>
+<td></td>
+<td valign="top">
+<div id="demands_exists" style="display:none">
+<table id="t02">
+<tr>
+<td class="t02Cell">Тип устройства</td>
+<td style="font-size: 150%"><span id="model"></span></td>
+</tr>
+<tr>
+<th>Динамическое значение</th>
+<th>Значение</th>
+</tr>
+<tr>
+<td class="t02Cell">I1</td>
+<td class="t02Cell"><span id="I1"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">I2</td>
+<td class="t02Cell"><span id="I2"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">I3</td>
+<td class="t02Cell"><span id="I3"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Общая активная мощность +</td>
+<td class="t02Cell"><span id="Ptp"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Общая активная мощность -</td>
+<td class="t02Cell"><span id="Pt-"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Общая реактивня мощность L</td>
+<td class="t02Cell"><span id="Qt-L"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Общая реактивня мощность C</td>
+<td class="t02Cell"><span id="Qt-C"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Полная мощность</td>
+<td class="t02Cell"><span id="St"></span></td>
+</tr>
+<tr>
+<th>Сброс значения</th>
+<th>Значение</th>
+<th>Time MD</th>
+</tr>
+<tr>
+<td class="t02Cell">I1</td>
+<td class="t02Cell"><span id="Im1"></span></td>
+<td class="t02Cell"><span id="Imt1"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">I2</td>
+<td class="t02Cell"><span id="Im2"></span></td>
+<td class="t02Cell"><span id="Imt2"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">I3</td>
+<td class="t02Cell"><span id="Im3"></span></td>
+<td class="t02Cell"><span id="Imt3"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Общая активная мощность +</td>
+<td class="t02Cell"><span id="Ptpm"></span></td>
+<td class="t02Cell"><span id="Ptpmt"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Общая активная мощность -</td>
+<td class="t02Cell"><span id="Ptmm"></span></td>
+<td class="t02Cell"><span id="Ptmmt"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Общая реактивня мощность L</td>
+<td class="t02Cell"><span id="QtLm"></span></td>
+<td class="t02Cell"><span id="QtLmt"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Общая реактивня мощность C</td>
+<td class="t02Cell"><span id="QtCm"></span></td>
+<td class="t02Cell"><span id="QtCmt"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Полная мощность</td>
+<td class="t02Cell"><span id="Stm"></span></td>
+<td class="t02Cell"><span id="Stmt"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Время в периоде</td>
+<td class="t02Cell"><span id="time_period"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Время</td>
+<td class="t02Cell"><span id="timestamp"></span></td>
+</tr>
+</table>
+</div>
+<div id="demands_dont_exist" style="display:none">
+<h2>Нет доступных значений или ошибка конфигурации</h2>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<script type="text/javascript">
+      function updateData() {
+        console.log("updateData()");
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+           console.log("updateData(): got Data:", this.responseText);
+           var measData = JSON.parse(this.responseText);
+           document.getElementById("model").innerHTML = measData.model;                               
+           if (measData.model == "0") {
+            document.getElementById("demands_dont_exist").style.display="block";
+            document.getElementById("demands_exists").style.display="none";                       
+            console.log('demands not exist!');
+           }
+           else
+           {
+            document.getElementById("demands_exists").style.display="block";
+            document.getElementById("demands_dont_exist").style.display="none";
+            console.log('demands exists!');
+            document.getElementById("I1").innerHTML = measData.measurements.I1;
+            document.getElementById("I2").innerHTML = measData.measurements.I2;
+            document.getElementById("I3").innerHTML = measData.measurements.I3;
+            document.getElementById("St").innerHTML = measData.measurements.St;
+            document.getElementById("Ptp").innerHTML = measData.measurements.Ptp;
+            document.getElementById("Pt-").innerHTML = measData.measurements.Ptm;
+            document.getElementById("Qt-L").innerHTML = measData.measurements.QtL;
+            document.getElementById("Qt-C").innerHTML = measData.measurements.QtC;
+            document.getElementById("Im1").innerHTML = measData.measurements.Im1;
+            document.getElementById("Imt1").innerHTML = measData.measurements.Imt1;           
+            document.getElementById("Im2").innerHTML = measData.measurements.Im2;
+            document.getElementById("Imt2").innerHTML = measData.measurements.Imt2;
+            document.getElementById("Im3").innerHTML = measData.measurements.Im3;
+            document.getElementById("Imt3").innerHTML = measData.measurements.Imt3;
+            document.getElementById("Stm").innerHTML = measData.measurements.Stm;
+            document.getElementById("Ptpm").innerHTML = measData.measurements.Ptpm;
+            document.getElementById("Ptmm").innerHTML = measData.measurements.Ptmm;
+            document.getElementById("QtLm").innerHTML = measData.measurements.QtLm;
+            document.getElementById("QtCm").innerHTML = measData.measurements.QtCm;
+            document.getElementById("Stmt").innerHTML = measData.measurements.Stmt;
+            document.getElementById("Ptpmt").innerHTML = measData.measurements.Ptpmt;
+            document.getElementById("Ptmmt").innerHTML = measData.measurements.Ptmmt;
+            document.getElementById("QtLmt").innerHTML = measData.measurements.QtLmt;
+            document.getElementById("QtCmt").innerHTML = measData.measurements.QtCmt;
+            document.getElementById("time_period").innerHTML = measData.time_period;
+            document.getElementById("timestamp").innerHTML = measData.local_time;
+           }               
+          }
+        };
+        xhttp.open("GET", "/demands?_=" + new Date().getTime(), true);//add timestamp to avoid browser caching
+        xhttp.send();
+      }
+      
+      updateData();
+      window.setInterval(updateData, 60000); //update data every 60 seconds
+    </script>
+</body>
+</html>

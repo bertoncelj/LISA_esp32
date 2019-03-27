@@ -1,0 +1,149 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="dark_style.css">
+<title>Iskra iHUB Lite</title>
+</head>
+<body>
+<table id="t01">
+<tbody>
+<tr style="font-weight: bold; font-size: 200%; font-family: Verdana;text-align: center;">
+<td> <img src="iskra_logo1.jpg" alt="Iskra"></td>
+<td></td>
+<td>COUNTERS</td>
+</tr>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+<tr style="height: 10px;"></tr>
+<tr>
+<td valign="top">
+<div class="vertical-menu">
+  <a href="/index.html">WiFi status</a>
+  <a href="/status.html">CPU Status</a>
+  <a href="/rs485_devices.html">RS485 Devices</a>
+  <a href="/counters.html">Counters light</a>
+  <a href="/counters1.html" class="active">Counters dark</a>
+  <a href="/measurements.html">Measurements</a>
+  <a href="/graph.html">Power Graph</a>
+  <a href="/demands.html">Max. Demands</a>
+  <a href="/settings_general.html">Settings</a>
+  <a href="/bicom.html">Bicom control</a>
+  <!--<a href="/edit">File Browser</a> -->
+  <a href="/update">Upgrade</a>
+</div>
+</td>
+<td></td>
+<td valign="top">
+<table id="t02">
+<tr>
+<th>Counters (Reset)</th>
+<th>Counter Value</th>
+</tr>
+<tr>
+<td>Counter 1 - <span id="phase1"></span><br>
+<small>Tariff:<!--|06|Input|0|--><span id="tariff1"></span><br>
+Direction:<!--|06|Input|1|-->IN</small></td>
+<td style="font-size: 200%"><!--|06|Input|2|--><span id="counter1"></span></td>
+</tr>
+<tr>
+<td>Counter 2 - <span id="phase2"></span><br>
+<small>Tariff:<!--|06|Input|3|--><span id="tariff2"></span><br>
+Direction:<!--|06|Input|4|--></small></td>
+<td style="font-size: 200%"><!--|06|Input|5|--><span id="counter2"></span></td>
+</tr>
+<tr>
+<td>Counter 3 - <span id="phase3"></span><br>
+<small>Tariff:<!--|06|Input|6|--><span id="tariff3"></span><br>
+Direction:<!--|06|Input|7|--></small></td>
+<td style="font-size: 200%"><!--|06|Input|8|--><span id="counter3"></span></td>
+</tr>
+<tr>
+<td>Counter 4 - <span id="phase4"></span><br>
+<small>Tariff:<!--|06|Input|9|--><span id="tariff4"></span><br>
+Direction:<!--|06|Input|10|--></small></td>
+<td style="font-size: 200%"><!--|06|Input|11|--><span id="counter4"></span></td>
+</tr>
+<tr>
+<th>Counters (Non Reset)</th>
+<th>Counter value</th>
+</tr>
+<tr>
+<td>Counter 1 - <span id="phase1nr"></span><br>
+<small>Tariff:<!--|06|Input|0|--><span id="tariff1nr"></span><br>
+Direction:<!--|06|Input|1|--></small></td>
+<td style="font-size: 200%"><!--|06|Input|2|--><span id="counter1nr"></span></td>
+</tr>
+<tr>
+<td>Counter 2 - <span id="phase2nr"></span><br>
+<small>Tariff:<!--|06|Input|3|--><span id="tariff2nr"></span><br>
+Direction:<!--|06|Input|4|--></small></td>
+<td style="font-size: 200%"><!--|06|Input|5|--><span id="counter2nr"></span></td>
+</tr>
+<tr>
+<td>Counter 3 - <span id="phase3nr"></span><br>
+<small>Tariff:<!--|06|Input|6|--><span id="tariff3nr"></span><br>
+Direction:<!--|06|Input|7|--></small></td>
+<td style="font-size: 200%"><!--|06|Input|8|--><span id="counter3nr"></span></td>
+</tr>
+<tr>
+<td>Counter 4 - <span id="phase4nr"></span><br>
+<small>Tariff:<!--|06|Input|9|--><span id="tariff4nr"></span><br>
+Direction:<!--|06|Input|10|--></small></td>
+<td style="font-size: 200%"><!--|06|Input|11|--><span id="counter4nr"></span></td>
+</tr>
+<tr>
+<td>Time</td>
+<td><!--|06|Input|11|--><span id="timestamp"></span></td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<script>
+      function updateData() {
+        console.log("updateData()");
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+           console.log("updateData(): got Data:", this.responseText);
+           var measData = JSON.parse(this.responseText);
+           document.getElementById("counter1").innerHTML = measData.counter1;
+           document.getElementById("counter2").innerHTML = measData.counter2;
+           document.getElementById("counter3").innerHTML = measData.counter3;
+           document.getElementById("counter4").innerHTML = measData.counter4;
+           document.getElementById("counter1nr").innerHTML = measData.counter1nr;
+           document.getElementById("counter2nr").innerHTML = measData.counter2nr;
+           document.getElementById("counter3nr").innerHTML = measData.counter3nr;
+           document.getElementById("counter4nr").innerHTML = measData.counter4nr;
+           document.getElementById("phase1").innerHTML = measData.phase1;
+           document.getElementById("phase2").innerHTML = measData.phase2;
+           document.getElementById("phase3").innerHTML = measData.phase3;
+           document.getElementById("phase4").innerHTML = measData.phase4;
+           document.getElementById("phase1nr").innerHTML = measData.phase1;
+           document.getElementById("phase2nr").innerHTML = measData.phase2;
+           document.getElementById("phase3nr").innerHTML = measData.phase3;
+           document.getElementById("phase4nr").innerHTML = measData.phase4;
+           document.getElementById("tariff1").innerHTML = measData.tariff1;
+           document.getElementById("tariff2").innerHTML = measData.tariff2;
+           document.getElementById("tariff3").innerHTML = measData.tariff3;
+           document.getElementById("tariff4").innerHTML = measData.tariff4;
+           document.getElementById("tariff1nr").innerHTML = measData.tariff1;
+           document.getElementById("tariff2nr").innerHTML = measData.tariff2;
+           document.getElementById("tariff3nr").innerHTML = measData.tariff3;
+           document.getElementById("tariff4nr").innerHTML = measData.tariff4;
+           document.getElementById("timestamp").innerHTML = measData.local_time;
+          }
+        };
+        xhttp.open("GET", "/counters?_=" + new Date().getTime(), true);//add timestamp to avoid browser caching
+        xhttp.send();
+      }
+      
+      updateData();
+      window.setInterval(updateData, 60000); //update the counters every 60 seconds
+    </script>
+</body>
+</html>

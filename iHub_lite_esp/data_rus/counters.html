@@ -1,0 +1,199 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="light_style.css">
+<title>Iskra iHUB Lite</title>
+</head>
+<body>
+<table id="t01">
+<tbody>
+<tr style="font-weight: bold; font-size: 200%; font-family: Verdana;text-align: center;">
+<td> <img src="iskra_logo1.jpg" alt="Iskra"></td>
+<td></td>
+<td>Счетчики</td>
+</tr>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+<tr style="height: 10px;"><td></td></tr>
+<tr>
+<td valign="top">
+<div class="vertical-menu">
+  <a href="/index.html">Статус iHUB</a>
+  <a href="/settings_general.html">Настройки iHUB</a>
+  <a href="/rs485_devices.html">Устройства RS485</a>
+  <a href="/wifi_devices.html"">Устройства Wifi</a>   
+  <a href="/counters.html" class="active">Счетчики</a>  
+  <a href="/measurements.html">Измерения</a>
+  <a href="/graph.html">График мощности</a>
+  <a href="/demands.html">Макс. значения</a>
+  <a href="/settings.html">Настройки устройства</a>  
+  <a href="/bicom.html">Управление Bicom</a>
+  <!--<a href="/edit">File Browser</a> -->
+  <a href="/update">Обновление</a>
+</div>
+</td>
+<td></td>
+<td valign="top">
+<div id="no_counters_configured" style="display:none">
+<h2>Нет доступных счетчиков или ошибка конфигурации</h2>
+</div>
+<div id="counters" style="display:none">
+<table id="t02">
+<tr>
+<td class="t02Cell">Тип устройства</td>
+<td style="font-size: 200%"><span id="model"></span></td>
+</tr>
+<tr>
+<th>Счетчики</th>
+<th>Значение счетчика</th>
+</tr>
+<tr>
+<td>Счетчик 1 - <span id="phase1"></span><br>
+<small>Тариф:<span id="tariff1"></span><br>
+Направление:</small></td>
+<td style="font-size: 200%"><span id="counter1"></span></td>
+</tr>
+<tr>
+<td>Счетчик 2 - <span id="phase2"></span><br>
+<small>Тариф:<span id="tariff2"></span><br>
+Направление:</small></td>
+<td style="font-size: 200%"><span id="counter2"></span></td>
+</tr>
+<tr>
+<td>Счетчик 3 - <span id="phase3"></span><br>
+<small>Тариф:<span id="tariff3"></span><br>
+Направление:</small></td>
+<td style="font-size: 200%"><span id="counter3"></span></td>
+</tr>
+<tr>
+<td>Счетчик 4 - <span id="phase4"></span><br>
+<small>Тариф:<span id="tariff4"></span><br>
+Направление:</small></td>
+<td style="font-size: 200%"><span id="counter4"></span></td>
+</tr>
+</table>
+</div>
+<div id="resettable_counters" style="display:none">
+<table id="t02">
+<tr>
+<th>Счетчики (необнуляемые)</th>
+<th>Значение счетчика</th>
+</tr>
+<tr>
+<td>Счетчик 1 - <span id="phase1nr"></span><br>
+<small>Тариф:<span id="tariff1nr"></span><br>
+Направление:</small></td>
+<td style="font-size: 200%"><span id="counter1nr"></span></td>
+</tr>
+<tr>
+<td>Счетчик 2 - <span id="phase2nr"></span><br>
+<small>Тариф:<span id="tariff2nr"></span><br>
+Направление:</small></td>
+<td style="font-size: 200%"><span id="counter2nr"></span></td>
+</tr>
+<tr>
+<td>Счетчик 3 - <span id="phase3nr"></span><br>
+<small>Тариф:<span id="tariff3nr"></span><br>
+Направление:</small></td>
+<td style="font-size: 200%"><span id="counter3nr"></span></td>
+</tr>
+<tr>
+<td>Счетчик 4 - <span id="phase4nr"></span><br>
+<small>Тариф:<span id="tariff4nr"></span><br>
+Направление:</small></td>
+<td style="font-size: 200%"><span id="counter4nr"></span></td>
+</tr>
+</table>
+<table id="t02">
+<tr>
+<td>Time: </td>
+<td><span id="timestamp"></span></td>
+</tr>
+</table>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<script type="text/javascript">
+      function phaseToRus(english) {
+        var counter_phase = ["Total", "Phase 1", "Phase 2", "Phase 3"];
+        var counter_phase_rus = ["Всего", "Фаза 1", "Фаза 2", "Фаза 3"];
+        var i;
+        for(i=0;i<3;i++)
+        {
+          if(english == counter_phase[i])
+           return counter_phase_rus[i];
+        }
+        return "";
+      }
+      
+      function updateData() {
+        console.log("updateData()");
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+           console.log("updateData(): got Data:", this.responseText);
+           var measData = JSON.parse(this.responseText);
+           if( measData.model == 0)
+           {
+            document.getElementById("counters").style.display="none";
+            document.getElementById("resettable_counters").style.display="none";
+            document.getElementById("no_counters_configured").style.display="block";
+           }
+           else
+           {
+           
+           document.getElementById("counters").style.display="block";                      
+           document.getElementById("model").innerHTML = measData.model;
+           document.getElementById("counter1").innerHTML = measData.measurements.counter1;
+           document.getElementById("counter2").innerHTML = measData.measurements.counter2;
+           document.getElementById("counter3").innerHTML = measData.measurements.counter3;
+           document.getElementById("counter4").innerHTML = measData.measurements.counter4;
+           document.getElementById("counter1nr").innerHTML = measData.measurements.counter1nr;
+           document.getElementById("counter2nr").innerHTML = measData.measurements.counter2nr;
+           document.getElementById("counter3nr").innerHTML = measData.measurements.counter3nr;
+           document.getElementById("counter4nr").innerHTML = measData.measurements.counter4nr;
+           document.getElementById("phase1").innerHTML = phaseToRus(measData.settings.phase1);
+           document.getElementById("phase2").innerHTML = phaseToRus(measData.settings.phase2);
+           document.getElementById("phase3").innerHTML = phaseToRus(measData.settings.phase3);
+           document.getElementById("phase4").innerHTML = phaseToRus(measData.settings.phase4);
+           document.getElementById("phase1nr").innerHTML = phaseToRus(measData.settings.phase1);
+           document.getElementById("phase2nr").innerHTML = phaseToRus(measData.settings.phase2);
+           document.getElementById("phase3nr").innerHTML = phaseToRus(measData.settings.phase3);
+           document.getElementById("phase4nr").innerHTML = phaseToRus(measData.settings.phase4);
+           document.getElementById("tariff1").innerHTML = measData.settings.tariff1;
+           document.getElementById("tariff2").innerHTML = measData.settings.tariff2;
+           document.getElementById("tariff3").innerHTML = measData.settings.tariff3;
+           document.getElementById("tariff4").innerHTML = measData.settings.tariff4;
+           document.getElementById("tariff1nr").innerHTML = measData.settings.tariff1;
+           document.getElementById("tariff2nr").innerHTML = measData.settings.tariff2;
+           document.getElementById("tariff3nr").innerHTML = measData.settings.tariff3;
+           document.getElementById("tariff4nr").innerHTML = measData.settings.tariff4;
+           document.getElementById("timestamp").innerHTML = measData.local_time;
+           
+           if (measData.measurements.counter1nr == null && 
+              measData.measurements.counter2nr == null &&
+               measData.measurements.counter3nr == null && 
+                measData.measurements.counter4nr == null) {
+            document.getElementById("resettable_counters").style.display="none";                       
+            console.log('resettable_counters dont exist!');
+           }
+           else
+            document.getElementById("resettable_counters").style.display="block";                     
+           }
+          }
+        };
+        xhttp.open("GET", "/counters?_=" + new Date().getTime(), true);//add timestamp to avoid browser caching
+        xhttp.send();
+      }
+      
+      updateData();
+      window.setInterval(updateData, 60000); //update the counters every 60 seconds
+    </script>
+</body>
+</html>

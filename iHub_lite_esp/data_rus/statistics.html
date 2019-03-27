@@ -1,0 +1,211 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="light_style.css">
+<title>Iskra iHUB Lite</title>
+</head>
+<body>
+<table id="t01">
+<tbody>
+<tr style="font-weight: bold; font-size: 200%; font-family: Verdana;text-align: center;">
+<td> <img src="iskra_logo1.jpg" alt="Iskra"></td>
+<td></td>
+<td>STATISTICS</td>
+</tr>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+<tr style="height: 10px;"><td></td></tr>
+<tr>
+<td valign="top">
+<div class="vertical-menu">
+  <a href="/index.html">iHUB status</a>
+  <a href="/settings_general.html">iHUB Settings</a>
+  <a href="/rs485_devices.html">RS485 Devices</a>
+  <a href="/wifi_devices.html">WiFi Devices</a>   
+  <a href="/counters.html">Counters</a>  
+  <a href="/measurements.html">Measurements</a>
+  <a href="/graph.html">Power Graph</a>
+  <a href="/demands.html">Max. Demands</a>
+  <a href="/settings.html">Device Settings</a>  
+  <a href="/bicom.html">Bicom control</a>
+  <!--<a href="/edit">File Browser</a> -->
+  <a href="/update">Upgrade</a>
+</div>
+</td>
+<td></td>
+<td valign="top">
+<table id="t02">
+<tr>
+<th>Wifi Statistics</th>
+<th>Value</th>
+</tr>
+<tr>
+<td class="t02Cell">Wifi uptime</td>
+<td class="t02Cell"><span id="wifi_uptime"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Wifi Heap Free</td>
+<td class="t02Cell"><span id="wifi_heap"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Wifi Signal Level</td>
+<td class="t02Cell"><span id="wifi_signal_level"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">TCP RX</td>
+<td class="t02Cell"><span id="tcp_rx_packets"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">TCP TX</td>
+<td class="t02Cell"><span id="tcp_tx_packets"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">WEB Requests</td>
+<td class="t02Cell"><span id="web_requests"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">CPU RX</td>
+<td class="t02Cell"><span id="serial_rx_packets"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">CPU TX</td>
+<td class="t02Cell"><span id="serial_tx_packets"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Errors</td>
+<td class="t02Cell"><span id="wifi_errors"></span></td>
+</tr>
+<tr>
+<th>CPU Statistics</th>
+<th>Value</th>
+</tr>
+<tr>
+<td class="t02Cell">uptime</td>
+<td class="t02Cell"><span id="uptime"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Wifi RX</td>
+<td class="t02Cell"><span id="wifi_rx"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Wifi TX</td>
+<td class="t02Cell"><span id="wifi_tx"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">TCP RX</td>
+<td class="t02Cell"><span id="tcp_rx"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">TCP TX</td>
+<td class="t02Cell"><span id="tcp_tx"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">RS485 RX</td>
+<td class="t02Cell"><span id="rs485_rx"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">RS485 TX</td>
+<td class="t02Cell"><span id="rs485_tx"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Left IR RX</td>
+<td class="t02Cell"><span id="left_ir_rx"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Left IR TX</td>
+<td class="t02Cell"><span id="left_ir_tx"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Right IR RX</td>
+<td class="t02Cell"><span id="right_ir_rx"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Right IR TX</td>
+<td class="t02Cell"><span id="right_ir_tx"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Wifi Start</td>
+<td class="t02Cell"><span id="wifi_start"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Wifi Reset</td>
+<td class="t02Cell"><span id="wifi_reset"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Errors</td>
+<td class="t02Cell"><span id="errors"></span></td>
+</tr>
+<tr>
+<th>Other</th>
+<th>Value</th>
+</tr>
+<tr>
+<td class="t02Cell">Time</td>
+<td class="t02Cell"><span id="timestamp"></span></td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<script type="text/javascript">
+      function updateData() {
+        console.log("updateData()");
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+           console.log("updateData(): got Data:", this.responseText);
+           var measData = JSON.parse(this.responseText);
+           document.getElementById("uptime").innerHTML = measData.uptime;
+           document.getElementById("wifi_rx").innerHTML = measData.wifi_rx;
+           document.getElementById("wifi_tx").innerHTML = measData.wifi_tx;
+           document.getElementById("tcp_rx").innerHTML = measData.tcp_rx;
+           document.getElementById("tcp_tx").innerHTML = measData.tcp_tx;
+           document.getElementById("rs485_rx").innerHTML = measData.rs485_rx;
+           document.getElementById("rs485_tx").innerHTML = measData.rs485_tx;
+           document.getElementById("left_ir_rx").innerHTML = measData.left_ir_rx;
+           document.getElementById("left_ir_tx").innerHTML = measData.left_ir_tx;
+           document.getElementById("right_ir_rx").innerHTML = measData.right_ir_rx;
+           document.getElementById("right_ir_tx").innerHTML = measData.right_ir_tx;
+           document.getElementById("wifi_start").innerHTML = measData.wifi_start;
+           document.getElementById("wifi_reset").innerHTML = measData.wifi_reset;                      
+           document.getElementById("errors").innerHTML = measData.errors;           
+           document.getElementById("timestamp").innerHTML = measData.local_time;            
+          }
+        };
+        xhttp.open("GET", "/stm_statistics?_=" + new Date().getTime(), true);//add timestamp to avoid browser caching
+        xhttp.send();
+      }
+      
+      function updateDataWifi() {
+        console.log("updateDataWifi()");
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+           console.log("updateData(): got Data:", this.responseText);
+           var measData = JSON.parse(this.responseText);                     
+           document.getElementById("wifi_signal_level").innerHTML = measData.wifi_signal_level;
+           document.getElementById("wifi_heap").innerHTML = measData.wifi_heap;          
+           document.getElementById("wifi_uptime").innerHTML = measData.uptime; 
+           document.getElementById("tcp_rx_packets").innerHTML = measData.tcp_rx_packets;                     
+           document.getElementById("tcp_tx_packets").innerHTML = measData.tcp_tx_packets;
+           document.getElementById("web_requests").innerHTML = measData.web_requests;
+           document.getElementById("serial_rx_packets").innerHTML = measData.serial_rx_packets;
+           document.getElementById("serial_tx_packets").innerHTML = measData.serial_tx_packets;
+           document.getElementById("wifi_errors").innerHTML = measData.errors;
+          }
+        };
+        xhttp.open("GET", "/wifi_data?_=" + new Date().getTime(), true);//add timestamp to avoid browser caching
+        xhttp.send();
+      }
+      
+      updateData();
+      window.setInterval(updateData, 60000); //update data every 60 seconds
+      updateDataWifi();
+      window.setInterval(updateDataWifi, 60000); //update data every 60 seconds
+    </script>
+</body>
+</html>

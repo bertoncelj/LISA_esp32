@@ -1,0 +1,159 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="light_style.css">
+<title>Iskra iHUB Lite</title>
+</head>
+<body>
+<div id="loader" class="loader" style="display:none" ></div> 
+<table id="t01">
+<tbody>
+<tr style="font-weight: bold; font-size: 200%; font-family: Verdana;text-align: center;">
+<td> <img src="iskra_logo1.jpg" alt="Iskra"></td>
+<td></td>
+<td>Устройства RS485</td>
+</tr>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+<tr style="height: 10px;"><td></td></tr>
+<tr>
+<td valign="top">
+<div class="vertical-menu">
+  <a href="/index.html">Статус iHUB</a>
+  <a href="/settings_general.html">Настройки iHUB</a>
+  <a href="/rs485_devices.html" class="active">Устройства RS485</a>
+  <a href="/wifi_devices.html">Устройства Wifi</a>   
+  <a href="/counters.html">Счетчики</a>  
+  <a href="/measurements.html">Измерения</a>
+  <a href="/graph.html">График мощности</a>
+  <a href="/demands.html">Макс. значения</a>
+  <a href="/settings.html">Настройки устройства</a>  
+  <a href="/bicom.html">Управление Bicom</a>
+  <!--<a href="/edit">File Browser</a> -->
+  <a href="/update">Обновление</a>
+</div>
+</td>
+<td></td>
+<td valign="top">
+<div style="display:block;" id="devicesDiv">
+<table id="t02">
+<tr>
+<th>№</th>
+<th>Модель</th>
+<th>Серийный номер</th>
+<th>Параметры RS485</th>
+</tr>
+<tr>
+<td class="t02Cell">1</td>
+<td class="t02Cell"><span id="model1"></span></td>
+<td class="t02Cell"><span id="Serial1"></span></td>
+<td class="t02Cell">#<span id="params1"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">2</td>
+<td class="t02Cell"><span id="model2"></span></td>
+<td class="t02Cell"><span id="Serial2"></span></td>
+<td class="t02Cell">#<span id="params2"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">3</td>
+<td class="t02Cell"><span id="model3"></span></td>
+<td class="t02Cell"><span id="Serial3"></span></td>
+<td class="t02Cell">#<span id="params3"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">4</td>
+<td class="t02Cell"><span id="model4"></span></td>
+<td class="t02Cell"><span id="Serial4"></span></td>
+<td class="t02Cell">#<span id="params4"></span></td>
+</tr>
+</table>
+<br><br>        
+<form action="/detect_rs485" method="POST"><input type="hidden" name="command" value="ON"><input type="submit" class="button button4" value="Сканирование шины RS485" title="Scan will take more than 30 seconds" onclick="showLoader()"></form>
+</div>
+</td>
+</tbody>
+</table>
+<script type="text/javascript">
+    var pollSettings = setInterval(updateData, 5000);
+    
+    function stopPollingSettings() {
+      clearInterval(pollSettings);
+    } 
+    
+    function showLoader() {      
+      console.log("showLoader()");        
+      document.getElementById("loader").style.display = 'block';
+      document.getElementById("devicesDiv").style.display = 'none';
+      pollSettings = setInterval(updateData, 5000);              
+    }
+
+    function updateData() {
+      console.log("updateData()");
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+          console.log("updateData(): got Data:", this.responseText);
+          stopPollingSettings(); 
+          document.getElementById("loader").style.display = 'none';
+          document.getElementById("devicesDiv").style.display = 'block';
+           var measData = JSON.parse(this.responseText);
+           document.getElementById("Serial1").innerHTML = measData.devices[0].serial_number;
+           if(measData.devices[0].serial_number != "")
+           {
+            document.getElementById("model1").innerHTML = measData.devices[0].model;
+            document.getElementById("params1").innerHTML = measData.devices[0].address.concat(",",measData.devices[0].baud_rate,",8,",measData.devices[0].parity,",",measData.devices[0].stop_bits);            
+           }
+           else
+           {
+            document.getElementById("model1").innerHTML = "";            
+            document.getElementById("params1").innerHTML = "";
+           }            
+           document.getElementById("Serial2").innerHTML = measData.devices[1].serial_number;
+           if(measData.devices[1].serial_number != "")
+           {
+            document.getElementById("model2").innerHTML = measData.devices[1].model;
+            document.getElementById("params2").innerHTML = measData.devices[1].address.concat(",",measData.devices[1].baud_rate,",8,",measData.devices[1].parity,",",measData.devices[1].stop_bits);            
+           }
+           else
+           {
+            document.getElementById("model2").innerHTML = "";            
+            document.getElementById("params2").innerHTML = "";
+           }   
+           document.getElementById("Serial3").innerHTML = measData.devices[2].serial_number;
+           if(measData.devices[2].serial_number != "")
+           {
+            document.getElementById("model3").innerHTML = measData.devices[2].model;
+            document.getElementById("params3").innerHTML = measData.devices[2].address.concat(",",measData.devices[2].baud_rate,",8,",measData.devices[2].parity,",",measData.devices[2].stop_bits);            
+           }
+           else
+           {
+            document.getElementById("model3").innerHTML = "";            
+            document.getElementById("params3").innerHTML = "";
+           }   
+           document.getElementById("Serial4").innerHTML = measData.devices[3].serial_number;
+           if(measData.devices[3].serial_number != "")
+           {
+            document.getElementById("model4").innerHTML = measData.devices[3].model; 
+            document.getElementById("params4").innerHTML = measData.devices[3].address.concat(",",measData.devices[3].baud_rate,",8,",measData.devices[3].parity,",",measData.devices[3].stop_bits);            
+           }
+           else
+           {
+            document.getElementById("model4").innerHTML = "";            
+            document.getElementById("params4").innerHTML = "";
+           }           
+           //document.getElementById("timestamp").innerHTML = measData.local_time;            
+          }
+        };
+        xhttp.open("GET", "/get_rs485_devices?_=" + new Date().getTime(), true);//add timestamp to avoid browser caching
+        xhttp.send();
+      }
+      
+      updateData();      
+    </script>
+</body>
+</html>

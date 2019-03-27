@@ -1,0 +1,10 @@
+esptool.exe --port COM15 --baud 921600 write_flash 0x00000 iHub_lite_esp.ino.generic_v41.bin
+
+esptool.exe --port COM15 --baud 921600 write_flash 0x100000 spiffs_gz_fs_v17.bin
+
+
+
+
+esptool.exe --port COM15 --baud 921600 verify_flash 0x00000 iHub_lite_esp.ino.generic_v41.bin
+
+esptool.exe --port COM15 --baud 921600 verify_flash 0x100000 spiffs_gz_fs_v17.bin

@@ -1,0 +1,195 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="text/css" href="light_style.css">
+  <title>Iskra iHUB Lite</title>
+</head>
+
+<body>
+  <iframe name="hiddenFrame" style="width:0;height:0;border:0; border:none; display:none;"></iframe>
+  <div id="loader" class="loader" style="display:block" ></div>
+  <table id="t01">
+    <tbody>
+      <tr style="font-weight: bold; font-size: 200%; font-family: Verdana;text-align: center;">
+        <td> <img src="iskra_logo1.jpg" alt="Iskra"></td>
+        <td></td>
+        <td>Настройки iHUB</td>
+      </tr>
+      <tr>
+        <th></th>
+        <th></th>
+        <th></th>
+      </tr>
+      <tr style="height: 10px;"><td></td></tr>
+      <tr>
+        <td valign="top">
+          <div class="vertical-menu">
+            <a href="/index.html">Статус iHUB</a>
+            <a href="/settings_general.html" class="active">Настройки iHUB</a>
+            <a href="/rs485_devices.html">Устройства RS485</a>
+            <a href="/wifi_devices.html">Устройства Wifi</a>   
+            <a href="/counters.html">Счетчики</a>  
+            <a href="/measurements.html">Измерения</a>
+            <a href="/graph.html">График мощности</a>
+            <a href="/demands.html">Макс. значения</a>
+            <a href="/settings.html">Настройки устройства</a>  
+            <a href="/bicom.html">Управление Bicom</a>
+            <!--<a href="/edit">File Browser</a> -->
+            <a href="/update">Обновление</a>
+          </div>
+        </td>
+        <td></td>
+        <td valign="top">        
+          <table id="t02">                          
+            <tr>
+              <div class="topnav">
+                <a href="/settings_general.html">Главная</a>
+                <a class="active" href="settings_communication.html">Коммуникация</a>
+                <a href="settings_IR.html">Устройства ИК</a>
+                <a href="settings_RS485.html">Устройства RS485</a>
+              </div>
+              <h2></h2>
+              <form action="/settings_parse" target="hiddenFrame">
+              <div style="display:none;" id="devicesDiv" >              
+                <fieldset>
+                  <legend>Настройки коммуникации iHUB-Lite</legend>
+                  <br>Адрес Modbus iHUB:
+                  <br>
+                  <input type="text" name="ihub_modbus_address" id="ihub_modbus_address" size="5" maxlength="3">
+                  <br>
+                  <br>TCP порт iHUB:
+                  <br>
+                  <input type="text" name="tcp_port" id="tcp_port" size="5" maxlength="5">
+                  <!--
+      <br>WiFi SSID:
+      <br>
+      <input type="text" name="wifi_ssid" id="wifi_ssid" readonly>
+      <br>
+      <br>WiFi Password:
+      <br>
+      <input type="text" name="wifi_password" id="wifi_password" readonly>
+      <br><br>
+      -->
+                </fieldset>              
+              <br>              
+                <fieldset id="mqtt_settings">
+                  <legend>Настройки MQTT</legend>
+                  <br>                  
+                  <legend>MQTT Клиент:</legend>
+                  <input id="mqtt_dis" type="radio" name="mqtt_enabled" value="0" onclick="if(this.checked){mqttOFF()}"> Отключено <br>
+                  <input id="mqtt_en" type="radio" name="mqtt_enabled" value="1" onclick="if(this.checked){mqttON()}"> Включено<br>                                                    
+                    <br>  Имя хоста MQTT:
+                    <br>
+                    <input type="text" name="mqtt_server" id="mqtt_server" size="40" maxlength="39">
+                    <br>
+                    <br>  Порт MQTT:
+                    <br>
+                    <input type="text" name="mqtt_port" id="mqtt_port" size="5" maxlength="5">
+                    <br>
+                    <br>  Имя пользователя MQTT:
+                    <br>
+                    <input type="text" name="mqtt_username" id="mqtt_username" size="16" maxlength="15">
+                    <br>
+                    <br>  Пароль MQTT:
+                    <br>
+                    <input type="text" name="mqtt_password" id="mqtt_password" size="16" maxlength="15">
+                    <br>
+                    <br>  MQTT Топик:
+                    <br>
+                    <input type="text" name="mqtt_topic" id="mqtt_topic" maxlength="19">
+                    <br>
+                    <br>  Интервал публикации MQTT (в секундах):
+                    <br>
+                    <input type="text" name="mqtt_publish_interval" id="mqtt_publish_interval" size="5" maxlength="5">
+                    <br>                  
+                  </fieldset>
+                  <br>
+                  <input type="submit" value="Сохранить настройки" title="Press to send, then wait a few seconds" onclick="showLoader()">
+                </div>
+              </form>                         
+          </table>
+        </td>      
+      </tr>
+    </tbody>
+  </table>
+
+  <script type="text/javascript">        
+    var pollSettings = setInterval(updateData, 2000);
+    
+    function stopPollingSettings() {
+      clearInterval(pollSettings);
+    } 
+    
+    function showLoader() {      
+      console.log("showLoader()");        
+      document.getElementById("loader").style.display = 'block';
+      document.getElementById("devicesDiv").style.display = 'none';
+      pollSettings = setInterval(updateData, 2000);              
+    }
+    
+    function mqttON() {
+      console.log("mqttON()");
+      document.getElementById("mqtt_server").disabled = false;
+      document.getElementById("mqtt_port").disabled = false;
+      document.getElementById("mqtt_username").disabled = false;    
+      document.getElementById("mqtt_password").disabled = false;
+      document.getElementById("mqtt_topic").disabled = false;
+      document.getElementById("mqtt_publish_interval").disabled = false;
+    }
+    
+    function mqttOFF() {
+      console.log("mqttOFF()");
+      document.getElementById("mqtt_server").disabled = true;
+      document.getElementById("mqtt_port").disabled = true;
+      document.getElementById("mqtt_username").disabled = true;    
+      document.getElementById("mqtt_password").disabled = true;
+      document.getElementById("mqtt_topic").disabled = true;
+      document.getElementById("mqtt_publish_interval").disabled = true;
+    }
+
+    function updateData() {
+      console.log("updateData()");
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          console.log("updateData(): got Data:", this.responseText);
+          stopPollingSettings(); 
+          document.getElementById("loader").style.display = 'none';
+          document.getElementById("devicesDiv").style.display = 'block';          
+          var measData = JSON.parse(this.responseText);
+          console.log(measData);
+          document.getElementById("ihub_modbus_address").value = measData.modbus_address;
+          document.getElementById("tcp_port").value = measData.tcp_port;
+          //document.getElementById("wifi_ssid").value = measData.wifi_ssid;
+          //document.getElementById("wifi_password").value = measData.wifi_password;
+          document.getElementById("mqtt_server").value = measData.mqtt_server;
+          document.getElementById("mqtt_port").value = measData.mqtt_port;
+          document.getElementById("mqtt_username").value = measData.mqtt_username;
+          document.getElementById("mqtt_password").value = measData.mqtt_password;
+          document.getElementById("mqtt_topic").value = measData.mqtt_topic;
+          document.getElementById("mqtt_publish_interval").value = measData.mqtt_publish_interval;
+
+
+          // Set MQTT Enabled radio button
+          console.log("mqtt enabled:", measData.mqtt_enabled);
+          var mqttEnabledIds = ["mqtt_dis", "mqtt_en"];
+          if (measData.mqtt_enabled) {
+            document.getElementById(mqttEnabledIds[measData.mqtt_enabled]).checked = true;
+          }
+          if (measData.mqtt_enabled == 0)
+            mqttOFF();
+          else
+            mqttON();          
+        }
+      };
+      xhttp.open("GET", "/settings?_=" + new Date().getTime(), true); //add timestamp to avoid browser caching
+      xhttp.send();
+    }
+
+    updateData();    
+  </script>
+</body>
+
+</html>

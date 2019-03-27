@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="light_style.css">
+<title>Iskra iHUB Lite</title>
+</head>
+<body>
+<div id="loader" class="loader" style="display:none" ></div>  
+<table id="t01">
+<tbody>
+<tr style="font-weight: bold; font-size: 200%; font-family: Verdana;text-align: center;">
+<td> <img src="iskra_logo1.jpg" alt="Iskra"></td>
+<td></td>
+<td>External WiFi Devices</td>
+</tr>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+<tr style="height: 10px;"><td></td></tr>
+<tr>
+<td valign="top">
+<div class="vertical-menu">
+  <a href="/index.html">iHUB status</a>
+  <a href="/settings_general.html">iHUB Settings</a>
+  <a href="/rs485_devices.html">RS485 Devices</a>
+  <a href="/wifi_devices.html" class="active">WiFi Devices</a>      
+  <a href="/counters.html">Counters</a>  
+  <a href="/measurements.html">Measurements</a>
+  <a href="/graph.html">Power Graph</a>
+  <a href="/demands.html">Max. Demands</a>
+  <a href="/settings.html">Device Settings</a>  
+  <a href="/bicom.html">Bicom control</a>
+  <!--<a href="/edit">File Browser</a> -->
+  <a href="/update">Upgrade</a>
+</div>
+</td>
+<td></td>
+<td valign="top">
+<div id="wifi_sensors_table" style="display:none">
+</div>
+</div>
+<br><br>
+<div id="button" style="display:block" >        
+<form action="/detect_wifi_sensors" method="POST"><input type="hidden" name="command" value="ON"><input type="submit" class="button button4" value="Scan WiFi network" onclick="showLoader()"></form>
+</div>      
+</td>
+</tbody>
+</table>
+<script type="text/javascript">    
+
+    var pollSettings = setInterval(updateData, 5000);
+    
+    function stopPollingSettings() {
+      clearInterval(pollSettings);
+    }
+    
+    function showLoader() {      
+      console.log("showLoader()");        
+      document.getElementById("loader").style.display = 'block';
+      document.getElementById("wifi_sensors_table").style.display = 'none';
+      document.getElementById("button").style.display = 'none';
+      pollSettings = setInterval(updateData, 5000);              
+    }                
+    
+    function updateData() {
+        console.log("updateData()");
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+           console.log("updateData(): got Data:", this.responseText);
+           stopPollingSettings();
+           document.getElementById("loader").style.display = 'none';
+           document.getElementById("wifi_sensors_table").style.display = 'block';
+           document.getElementById("button").style.display = 'block';           
+           var measData = JSON.parse(this.responseText);
+           console.log("measData.length ", measData.data.length);
+           for (var i = 0; i < measData.data.length; i++) {
+             if(measData.data[i].model)
+             {             
+               var htmlElements = "";                
+               htmlElements += "<div id='card"+i+"' class='card' style='display:none'>"  
+               htmlElements += "<div class='container'>"        
+               htmlElements += "<br><span id='Location"+i+"'> </span> <span id='Description"+i+"'> </span>";
+               htmlElements += "<span style='float:right;' id='Timestamp"+i+"'></span>"               
+               htmlElements += "<br><span style='font-size: 200%;'>"
+               htmlElements += "<img src='temperature.png' alt='Temperature'>";
+               htmlElements += "<span id='Temperature"+i+"'></span> "
+               if(measData.data[i].Humidity != '--- ')
+               {
+                htmlElements += "<img src='humidity.png' alt='Humidity'> ";
+                htmlElements += "<span id='Humidity"+i+"'> </span>"
+               }
+               if(measData.data[i].Pressure != '--- ')
+                htmlElements += " P:<span id='Pressure"+i+"'> </span>"
+               htmlElements += "</span>"
+               
+               htmlElements += "<br><span id='Serial"+i+"'> </span>"; 
+               htmlElements += "<span style='float:right;' id='IP_Address"+i+"'> </span>";
+                             
+               var container = document.getElementById("wifi_sensors_table");
+               container.innerHTML += htmlElements;                          
+             
+               //console.log('data: '+ i);
+               document.getElementById('card' + i).style.display = 'block';           
+               //document.getElementById("model"+ i).innerHTML = measData.data[i].model;
+               document.getElementById("Serial" + i).innerHTML = measData.data[i].Serial;
+               document.getElementById("Location" + i).innerHTML = measData.data[i].Location;
+               document.getElementById("Description" + i).innerHTML = measData.data[i].Description;
+               document.getElementById("IP_Address" + i).innerHTML = measData.data[i].IP_Address; 
+               document.getElementById("Temperature" + i).innerHTML = measData.data[i].Temperature.concat("&#176;C");                    
+               if(measData.data[i].Humidity != '--- ')
+                document.getElementById("Humidity" + i).innerHTML = measData.data[i].Humidity.concat("%");           
+               if(measData.data[i].Pressure != '--- ')
+                document.getElementById("Pressure" + i).innerHTML = measData.data[i].Pressure.concat("kPa");              
+               
+               const localTime = new Date(measData.data[i].Timestamp*1000);                             
+               document.getElementById("Timestamp" + i).innerHTML = localTime.toLocaleString('sl-SI');
+                
+             }
+             else
+             {
+              //console.log("No data ", this.i);
+              document.getElementById('card' + i).style.display = 'none';            
+             }
+           }                                                                                                                                     
+          }
+        };
+        xhttp.open("GET", "/wifi_devices?_=" + new Date().getTime(), true);//add timestamp to avoid browser caching
+        xhttp.send();
+      }
+      
+      updateData();
+      window.setInterval(updateData, 60000); //update the counters every 60 seconds      
+    </script>
+</body>
+</html>

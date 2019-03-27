@@ -1,0 +1,150 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="light_style.css">
+<title>Iskra iHUB Lite</title>
+</head>
+<body>
+<table id="t01">
+<tbody>
+<tr style="font-weight: bold; font-size: 200%; font-family: Verdana;text-align: center;">
+<td> <img src="iskra_logo1.jpg" alt="Iskra"></td>
+<td></td>
+<td>CPU STATUS</td>
+</tr>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+<tr style="height: 10px;"><td></td></tr>
+<tr>
+<td valign="top">
+<div class="vertical-menu">
+  <a href="/index.html" class="active">iHUB status</a>
+  <a href="/settings_general.html">iHUB Settings</a>
+  <a href="/rs485_devices.html">RS485 Devices</a>
+  <a href="/wifi_devices.html">WiFi Devices</a>   
+  <a href="/counters.html">Counters</a>  
+  <a href="/measurements.html">Measurements</a>
+  <a href="/graph.html">Power Graph</a>
+  <a href="/demands.html">Max. Demands</a>
+  <a href="/settings.html">Device Settings</a>  
+  <a href="/bicom.html">Bicom control</a>
+  <!--<a href="/edit">File Browser</a> -->
+  <a href="/update">Upgrade</a>    
+</div>
+</td>
+<td></td>
+<td valign="top">
+<table id="t02">
+<tr>
+<th>Name</th>
+<th>Value</th>
+</tr>
+<tr>
+<td class="t02Cell">IHUB Modbus Address</td>
+<td class="t02Cell"><span id="ihub_modbus_addr"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">SW Version</td>
+<td class="t02Cell"><span id="version"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Bootloader Version</td>
+<td class="t02Cell"><span id="bootloader_ver"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">HW Version</td>
+<td class="t02Cell"><span id="hw_ver"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">SPI Flash</td>
+<td class="t02Cell"><span id="spi_flash"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Uptime</td>
+<td class="t02Cell"><span id="uptime"></span></td>
+</tr>
+<tr>
+<th>Detected Devices</th>
+<th></th>
+</tr>
+<tr>
+<td class="t02Cell">Left IR Device</td>
+<td class="t02Cell"><span id="left_ir_type"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Right IR Device</td>
+<td class="t02Cell"><span id="right_ir_type"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">RS 485 Device 1</td>
+<td class="t02Cell"><span id="rs485_1_type"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">RS 485 Device 2</td>
+<td class="t02Cell"><span id="rs485_2_type"></span></td>
+</tr>
+<tr>
+<th>Bicoms</th>
+<th></th>
+</tr>
+<tr>
+<td class="t02Cell">Bicom State</td>
+<td class="t02Cell"><span id="bicom_state"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Bicom 485 1 State</td>
+<td class="t02Cell"><span id="bicom_485_1_state"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Bicom 485 2 State</td>
+<td class="t02Cell"><span id="bicom_485_2_state"></span></td>
+</tr>
+<tr>
+<th>Other</th>
+<th>Value</th>
+</tr>
+<tr>
+<td class="t02Cell">Time</td>
+<td class="t02Cell"><span id="timestamp"></span></td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<script type="text/javascript">
+      function updateData() {
+        console.log("updateData()");
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+           console.log("updateData(): got Data:", this.responseText);
+           var measData = JSON.parse(this.responseText);           
+           document.getElementById("ihub_modbus_addr").innerHTML = measData.ihub_modbus_addr;
+           document.getElementById("version").innerHTML = measData.version;
+           document.getElementById("hw_ver").innerHTML = measData.hw_ver;
+           document.getElementById("bootloader_ver").innerHTML = measData.bootloader_ver;
+           document.getElementById("spi_flash").innerHTML = measData.spi_flash;
+           document.getElementById("uptime").innerHTML = measData.uptime;           
+           document.getElementById("left_ir_type").innerHTML = measData.left_ir_type;
+           document.getElementById("right_ir_type").innerHTML = measData.right_ir_type;
+           document.getElementById("rs485_1_type").innerHTML = measData.rs485_1_type;
+           document.getElementById("rs485_2_type").innerHTML = measData.rs485_2_type;
+           document.getElementById("bicom_state").innerHTML = measData.bicom_state;           
+           document.getElementById("bicom_485_1_state").innerHTML = measData.bicom_485_1_state;
+           document.getElementById("bicom_485_2_state").innerHTML = measData.bicom_485_2_state;
+           document.getElementById("timestamp").innerHTML = measData.local_time;
+          }
+        };
+        xhttp.open("GET", "/status?_=" + new Date().getTime(), true);//add timestamp to avoid browser caching
+        xhttp.send();
+      }
+      
+      updateData();
+      window.setInterval(updateData, 5000); //update the counters every 5 seconds
+    </script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="light_style.css">
+<title>Iskra iHUB Lite</title>
+</head>
+<body onload="updateData()">
+<table id="t01">
+<tbody>
+<tr style="font-weight: bold; font-size: 200%; font-family: Verdana;text-align: center;">
+<td> <img src="iskra_logo1.jpg" alt="Iskra"></td>
+<td></td>
+<td>BICOM CONTROL</td>
+</tr>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+<tr style="height: 10px;"><td></td></tr>
+<tr>
+<td valign="top">
+<div class="vertical-menu">
+  <a href="/index.html">iHUB status</a>
+  <a href="/settings_general.html">iHUB Settings</a>
+  <a href="/rs485_devices.html">RS485 Devices</a>
+  <a href="/wifi_devices.html">WiFi Devices</a>   
+  <a href="/counters.html">Counters</a>  
+  <a href="/measurements.html">Measurements</a>
+  <a href="/graph.html">Power Graph</a>
+  <a href="/demands.html">Max. Demands</a>
+  <a href="/settings.html">Device Settings</a>  
+  <a href="/bicom.html" class="active">Bicom control</a>
+  <!--<a href="/edit">File Browser</a> -->
+  <a href="/update">Upgrade</a>
+</div>
+</td>
+<td></td>
+<td valign="top">
+<div id="no_bicoms_configured" style="display:none">
+<h2>No bicoms available or configuration error</h2>
+</div>
+<div id="bicom_ir" style="display:none">
+<table style="border:1px black solid;">
+<tr style="height: 20px;"><td></td></tr>
+<tr style="background-color: white">
+<td> <form action="/bicom_command" method="POST"><input type="hidden" name="command" value="ON"><input type="submit" class="button button1" value="IR Bicom ON"></form></td>
+<td> <form action="/bicom_command" method="POST"><input type="hidden" name="command" value="OFF"><input type="submit" class="button button2" value="IR Bicom OFF"></form></td>
+<td> <form action="/bicom_command" method="POST"><input type="hidden" name="command" value="TOGGLE"><input type="submit" class="button button3" value="IR Bicom Toggle"></form></td>
+</tr>
+<tr style="height: 10px;"></tr>
+<tr>
+<td style="text-align: center;font-size: 200%" colspan="3"><span id="ir_relay_description"></span> STATE = <span id="bicom_state"></span></td>
+</tr>
+<tr style="height: 20px;"></tr>
+</table>
+</div>
+<div id="bicom_rs485_1" style="display:none">
+<table style="border:1px black solid;">
+<tr style="height: 20px;"></tr>
+<tr style="background-color: white">
+<td><form action="/bicom_command" method="POST"><input type="hidden" name="command" value="485_1_ON"><input type="submit" class="button button1" value="485 1 Bicom ON"></form></td>
+<td><form action="/bicom_command" method="POST"><input type="hidden" name="command" value="485_1_OFF"><input type="submit" class="button button2" value="485 1 Bicom OFF"></form></td>
+<td><form action="/bicom_command" method="POST"><input type="hidden" name="command" value="485_1_TOGGLE"><input type="submit" class="button button3" value="485 1 Bicom Toggle"></form></td>
+</tr>
+<tr style="height: 10px;"></tr>
+<tr>
+<td style="text-align: center;font-size: 200%" colspan="3"><span id="rs485_description_1"></span> STATE = <span id="bicom_485_1_state"></span></td>
+</tr>
+<tr style="height: 20px;"></tr>
+</table>
+</div>
+<div id="bicom_rs485_2" style="display:none">
+<table style="border:1px black solid;">
+<tr style="height: 20px;"></tr>
+<tr style="background-color: white">
+<td><form action="/bicom_command" method="POST"><input type="hidden" name="command" value="485_2_ON"><input type="submit" class="button button1" value="485 2 Bicom ON"></form></td>
+<td><form action="/bicom_command" method="POST"><input type="hidden" name="command" value="485_2_OFF"><input type="submit" class="button button2" value="485 2 Bicom OFF"></form></td>
+<td><form action="/bicom_command" method="POST"><input type="hidden" name="command" value="485_2_TOGGLE"><input type="submit" class="button button3" value="485 2 Bicom Toggle"></form></td>
+</tr>
+<tr style="height: 10px;"></tr>
+<tr>
+<td style="text-align: center;font-size: 200%" colspan="3"><span id="rs485_description_2"></span> STATE = <span id="bicom_485_2_state"></span></td>
+</tr>
+<tr style="height: 20px;"></tr>
+</table>
+</div>
+<p>Time: <span id="timestamp"></span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<script type="text/javascript">
+      function updateData() {
+        console.log("updateData()");
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+           console.log("updateData(): got Data:", this.responseText);
+           var measData = JSON.parse(this.responseText);
+           document.getElementById("bicom_state").innerHTML = measData.bicom_state;           
+           document.getElementById("ir_relay_description").innerHTML = measData.ir_relay_description;
+           document.getElementById("bicom_485_1_state").innerHTML = measData.bicom_485_1_state;                      
+           document.getElementById("rs485_description_1").innerHTML = measData.rs485_description_1;           
+           document.getElementById("bicom_485_2_state").innerHTML = measData.bicom_485_2_state;
+           document.getElementById("rs485_description_2").innerHTML = measData.rs485_description_2;              
+           document.getElementById("timestamp").innerHTML = measData.local_time;
+           if (measData.bicom_state == "N/A")
+            document.getElementById("bicom_ir").style.display="none";
+           else           
+            document.getElementById("bicom_ir").style.display="block";                       
+           if (measData.bicom_485_1_state == "N/A")
+            document.getElementById("bicom_rs485_1").style.display="none";
+           else
+            document.getElementById("bicom_rs485_1").style.display="block";
+           if (measData.bicom_485_2_state == "N/A")
+            document.getElementById("bicom_rs485_2").style.display="none"; 
+           else
+            document.getElementById("bicom_rs485_2").style.display="block";
+           
+           if (measData.bicom_state == "N/A" && measData.bicom_485_1_state == "N/A" && measData.bicom_485_2_state == "N/A") 
+            document.getElementById("no_bicoms_configured").style.display="block";                        
+          }
+        };
+        xhttp.open("GET", "/bicom_state?_=" + new Date().getTime(), true);//add timestamp to avoid browser caching
+        xhttp.send();
+      }
+      
+      updateData();
+      window.setInterval(updateData, 2000); //update bicom state every 2 seconds
+    </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+/* main table */
+#t01 {
+    /*width: 640px;*/
+    color: white;    
+    font-weight: bold;
+    font-family: Arial;
+    /*margin: 4px 2px;*/
+    /*padding: 15px;*/
+}
+
+/* table header */
+th {
+    color: white;
+    background-color: black;    
+    padding-left:5px;
+    padding-right: 5px;
+    padding-top: 1px;
+    padding-bottom: 1px;    
+}
+
+th:nth-child(even) {
+    text-align: center;
+}
+th:nth-child(odd) {
+    text-align: left;
+}
+
+/* table with results */
+#t02 {
+    /*width: 100%;*/    
+    font-weight: bold; 
+    font-family: Verdana;
+    border-collapse: collapse;
+    /*margin: 4px 2px;*/
+    /*padding: 15px;*/    
+}
+#t02 tr:nth-child(even) {
+    background-color: #00cccc;
+}
+#t02 tr:nth-child(odd) {
+    background-color: #009fa0;
+}
+#t02 td:nth-child(even) {
+    text-align: center;
+}
+#t02 td:nth-child(odd) {
+    text-align: left;
+}
+
+#t02Cell {
+ padding-left:5px;
+ padding-right: 5px;
+ padding-top: 3px;
+ padding-bottom: 2px;
+}
+
+/* bicom buttons */
+.button {    
+    border: none;
+    color: white;
+    padding: 15px 15px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+
+/* bicom buttons */
+.button1 {background-color: #4CAF50;} /* Green */ 
+.button2 {background-color: #f44336;} /* Red */
+.button3 {background-color: #008CBA;} /* Blue */
+
+/* vertical menu */
+.vertical-menu {
+    width: 180px; /* Set a width if you like */
+    font-size: 18px;
+    font-weight: normal;
+}
+
+.vertical-menu a {
+    background-color: #eee; /* Grey background color */
+    color: black; /* Black text color */
+    display: block; /* Make the links appear below each other */
+    padding: 10px; /* Add some padding */
+    text-decoration: none; /* Remove underline from links */
+    border-bottom: 1px solid #555;
+}
+
+.vertical-menu a:hover {
+    background-color: #ccc; /* Dark grey background on mouse-over */
+}
+
+.vertical-menu a.active {
+    background-color: #009fa0; /* Add a green color to the "active/current" link */
+    color: white;
+}

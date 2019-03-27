@@ -1,0 +1,250 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="light_style.css">
+<title>Iskra iHUB Lite</title>
+</head>
+<body>
+<table id="t01">
+<tbody>
+<tr style="font-weight: bold; font-size: 200%; font-family: Verdana;text-align: center;">
+<td> <img src="iskra_logo1.jpg" alt="Iskra"></td>
+<td></td>
+<td>Измерения</td>
+</tr>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+<tr style="height: 10px;"><td></td></tr>
+<tr>
+<td valign="top">
+<div class="vertical-menu">
+  <a href="/index.html">Статус iHUB</a>
+  <a href="/settings_general.html">Настройки iHUB</a>
+  <a href="/rs485_devices.html">Устройства RS485</a>
+  <a href="/wifi_devices.html"">Устройства Wifi</a>   
+  <a href="/counters.html">Счетчики</a>  
+  <a href="/measurements.html" class="active">Измерения</a>
+  <a href="/graph.html">График мощности</a>
+  <a href="/demands.html">Макс. значения</a>
+  <a href="/settings.html">Настройки устройства</a>  
+  <a href="/bicom.html">Управление Bicom</a>
+  <!--<a href="/edit">File Browser</a> -->
+  <a href="/update">Обновление</a>
+</div>
+</td>
+<td></td>
+<td valign="top">
+<div id="no_measurements_configured" style="display:none">
+<h2>Нет доступных измерений или ошибка конфигурации</h2>
+</div>
+<div id="measurements" style="display:none">
+<table id="t02">
+<tr>
+<td class="t02Cell">Тип устройства</td>
+<td style="font-size: 150%"><span id="model"></span></td>
+</tr>
+<tr>
+<th>Фаза 1</th>
+<th>Значение</th>
+</tr>
+<tr>
+<td class="t02Cell">U1</td>
+<td class="t02Cell"><span id="U1"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">I1</td>
+<td class="t02Cell"><span id="I1"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Активная мощность</td>
+<td class="t02Cell"><span id="P1"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Реактивная мощность</td>
+<td class="t02Cell"><span id="Q1"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Полная мощность</td>
+<td class="t02Cell"><span id="S1"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Коэффициент мощности</td>
+<td class="t02Cell"><span id="PF1"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Угол мощности</td>
+<td class="t02Cell"><span id="PA1"></span>&#176;</td>
+</tr>
+<tr>
+<th>Фаза 2</th>
+<th>Значение</th>
+</tr>
+<tr>
+<td class="t02Cell">U2</td>
+<td class="t02Cell"><span id="U2"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">I2</td>
+<td class="t02Cell"><span id="I2"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Активная мощность</td>
+<td class="t02Cell"><span id="P2"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Реактивная мощность</td>
+<td class="t02Cell"><span id="Q2"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Полная мощность</td>
+<td class="t02Cell"><span id="S2"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Коэффициент мощности</td>
+<td class="t02Cell"><span id="PF2"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Угол мощности</td>
+<td class="t02Cell"><span id="PA2"></span>&#176;</td>
+</tr>
+<tr>
+<th>Фаза 3</th>
+<th>Значение</th>
+</tr>
+<tr>
+<td class="t02Cell">U3<br>
+<td class="t02Cell"><span id="U3"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">I3</td>
+<td class="t02Cell"><span id="I3"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Активная мощность</td>
+<td class="t02Cell"><span id="P3"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Реактивная мощность</td>
+<td class="t02Cell"><span id="Q3"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Полная мощность</td>
+<td class="t02Cell"><span id="S3"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Коэффициент мощности</td>
+<td class="t02Cell"><span id="PF3"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Угол мощности</td>
+<td class="t02Cell"><span id="PA3"></span>&#176;</td>
+</tr>
+<tr>
+<th>Всего</th>
+<th>Значение</th>
+</tr>
+<tr>
+<td class="t02Cell">Общая активная мощность</td>
+<td class="t02Cell"><span id="P0"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Общая реактивная мощность</td>
+<td class="t02Cell"><span id="Q0"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Общая полная мощность</td>
+<td class="t02Cell"><span id="S0"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Общий коэффициент мощности</td>
+<td class="t02Cell"><span id="PF0"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Общий угол мощности</td>
+<td class="t02Cell"><span id="PA0"></span>&#176;</td>
+</tr>
+<tr>
+<th>Другое</th>
+<th>Значение</th>
+</tr>
+<tr>
+<td class="t02Cell">Частота</td>
+<td class="t02Cell"><span id="frequency"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Активный тариф</td>
+<td class="t02Cell"><span id="tariff"></span></td>
+</tr>
+<tr>
+<td class="t02Cell">Время</td>
+<td class="t02Cell"><span id="timestamp"></span></td>
+</tr>
+</table>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<script type="text/javascript">
+      function updateData() {
+        console.log("updateData()");
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+           console.log("updateData(): got Data:", this.responseText);
+           var measData = JSON.parse(this.responseText);
+           if( measData.model == 0)
+           {            
+            document.getElementById("no_measurements_configured").style.display="block";
+            document.getElementById("measurements").style.display="none";
+           }
+           else
+           {
+           document.getElementById("measurements").style.display="block";
+           document.getElementById("no_measurements_configured").style.display="none"; 
+           document.getElementById("model").innerHTML = measData.model;
+           document.getElementById("U1").innerHTML = measData.measurements.U1;
+           document.getElementById("I1").innerHTML = measData.measurements.I1;
+           document.getElementById("P1").innerHTML = measData.measurements.P1;
+           document.getElementById("Q1").innerHTML = measData.measurements.Q1;
+           document.getElementById("S1").innerHTML = measData.measurements.S1;
+           document.getElementById("PF1").innerHTML = measData.measurements.PF1;
+           document.getElementById("PA1").innerHTML = measData.measurements.PA1;
+           document.getElementById("U2").innerHTML = measData.measurements.U2;
+           document.getElementById("I2").innerHTML = measData.measurements.I2;
+           document.getElementById("P2").innerHTML = measData.measurements.P2;
+           document.getElementById("Q2").innerHTML = measData.measurements.Q2;
+           document.getElementById("S2").innerHTML = measData.measurements.S2;
+           document.getElementById("PF2").innerHTML = measData.measurements.PF2;
+           document.getElementById("PA2").innerHTML = measData.measurements.PA2;
+           document.getElementById("U3").innerHTML = measData.measurements.U3;
+           document.getElementById("I3").innerHTML = measData.measurements.I3;
+           document.getElementById("P3").innerHTML = measData.measurements.P3;
+           document.getElementById("Q3").innerHTML = measData.measurements.Q3;
+           document.getElementById("S3").innerHTML = measData.measurements.S3;
+           document.getElementById("PF3").innerHTML = measData.measurements.PF3;
+           document.getElementById("PA3").innerHTML = measData.measurements.PA3;
+           document.getElementById("P0").innerHTML = measData.measurements.P0;
+           document.getElementById("Q0").innerHTML = measData.measurements.Q0;
+           document.getElementById("S0").innerHTML = measData.measurements.S0;
+           document.getElementById("PF0").innerHTML = measData.measurements.PF0;
+           document.getElementById("PA0").innerHTML = measData.measurements.PA0;
+           document.getElementById("frequency").innerHTML = measData.measurements.frequency;
+           document.getElementById("tariff").innerHTML = measData.measurements.tariff;
+           document.getElementById("timestamp").innerHTML = measData.local_time;            
+          }
+        }
+        };
+        xhttp.open("GET", "/measurements?_=" + new Date().getTime(), true);//add timestamp to avoid browser caching
+        xhttp.send();
+      }
+      
+      updateData();
+      window.setInterval(updateData, 5000); //update data every 5 seconds
+    </script>
+</body>
+</html>

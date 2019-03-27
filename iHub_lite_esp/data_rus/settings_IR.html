@@ -1,0 +1,167 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="text/css" href="light_style.css">
+  <title>Iskra iHUB Lite</title>
+</head>
+
+<body>
+  <iframe name="hiddenFrame" style="width:0;height:0;border:0; border:none; display:none;"></iframe>
+  <div id="loader" class="loader" style="display:block" ></div>
+  <table id="t01">
+    <tbody>
+      <tr style="font-weight: bold; font-size: 200%; font-family: Verdana;text-align: center;">
+        <td> <img src="iskra_logo1.jpg" alt="Iskra"></td>
+        <td></td>
+        <td>Настройки iHUB</td>
+      </tr>
+      <tr>
+        <th></th>
+        <th></th>
+        <th></th>
+      </tr>
+      <tr style="height: 10px;"><td></td></tr>
+      <tr>
+        <td valign="top">
+          <div class="vertical-menu">
+            <a href="/index.html">Статус iHUB</a>
+            <a href="/settings_general.html" class="active">Настройки iHUB</a>
+            <a href="/rs485_devices.html">Устройства RS485</a>
+            <a href="/wifi_devices.html">Устройства Wifi</a>   
+            <a href="/counters.html">Счетчики</a>  
+            <a href="/measurements.html">Измерения</a>
+            <a href="/graph.html">График мощности</a>
+            <a href="/demands.html">Макс. значения</a>
+            <a href="/settings.html">Настройки устройства</a>  
+            <a href="/bicom.html">Управление Bicom</a>
+            <!--<a href="/edit">File Browser</a> -->
+            <a href="/update">Обновление</a>
+          </div>
+        </td>
+        <td></td>
+        <td valign="top">        
+          <table id="t02">
+            <tr>
+              <div class="topnav">
+                <a href="/settings_general.html">Главная</a>
+                <a href="settings_communication.html">Коммуникация</a>
+                <a class="active" href="settings_IR.html">Устройства ИК</a>
+                <a href="settings_RS485.html">Устройства RS485</a>
+              </div>
+              <h2></h2>
+              <form action="/settings_parse" target="hiddenFrame">
+              <div style="display:none;" id="devicesDiv" >
+                <fieldset>
+                  <legend>ИК-реле</legend>
+                  <br>
+                  <legend>Режим работы ИК-реле:</legend>
+                  <input id="ir_relay_mode_nc" type="radio" name="ir_external_relay_mode" value="0" onclick="if(this.checked){descriptionOFF()}"> Нет подключения <br>
+                  <input id="ir_relay_mode_man" type="radio" name="ir_external_relay_mode" value="1" onclick="if(this.checked){descriptionON()}"> Управляется iHub <br>
+                  <input id="ir_relay_mode_limit" type="radio" name="ir_external_relay_mode" value="2" onclick="if(this.checked){descriptionON()}"> Управляется ИК-счетчиком <br>
+                  <br>
+                  <legend>Описание ИК-реле:</legend>
+                  <input type="text" name="ir_relay_description" id="ir_relay_description" size="20" maxlength="19"> <br>
+                </fieldset>
+
+                <br>
+                <fieldset>
+                  <legend>ИК-счетчик:</legend>                  
+                  <input id="ir_counter_disabled" type="radio" name="ir_energy_counter_enabled" value="0" onclick="if(this.checked){addressOFF()}"> Отключено <br>
+                  <input id="ir_counter_enabled" type="radio" name="ir_energy_counter_enabled" value="1" onclick="if(this.checked){addressON()}"> Включено <br>
+                  <br>                
+                  <legend>Modbus адрес ИК-счетчика:</legend>
+                  <input type="text" name="ir_energy_counter_address" id="ir_energy_counter_address" size="5" maxlength="3"> <br>
+                </fieldset>
+                <br>
+                <input type="submit" value="Сохранить настройки" title="Press to send, then wait a few seconds" onclick="showLoader()" >
+                </div>
+              </form>
+              </tr>
+          </table>
+        </td>      
+    </tbody>
+  </table>
+
+  <script type="text/javascript">    
+  
+    var pollSettings = setInterval(updateData, 2000);
+    
+    function stopPollingSettings() {
+      clearInterval(pollSettings);
+    } 
+    
+    function showLoader() {      
+      console.log("showLoader()");        
+      document.getElementById("loader").style.display = 'block';
+      document.getElementById("devicesDiv").style.display = 'none';
+      pollSettings = setInterval(updateData, 2000);              
+    }
+    
+    function descriptionON() {
+      console.log("descriptionON()");
+      document.getElementById("ir_relay_description").disabled = false;          
+    }
+    
+    function descriptionOFF() {
+      console.log("descriptionOFF()");
+      document.getElementById("ir_relay_description").disabled = true;      
+    }
+    
+    function addressON() {
+      console.log("addressON()");
+      document.getElementById("ir_energy_counter_address").disabled = false;          
+    }
+    
+    function addressOFF() {
+      console.log("addressOFF()");
+      document.getElementById("ir_energy_counter_address").disabled = true;      
+    }
+
+    function updateData() {
+      console.log("updateData()");
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          console.log("updateData(): got Data:", this.responseText);
+          stopPollingSettings(); 
+          document.getElementById("loader").style.display = 'none';
+          document.getElementById("devicesDiv").style.display = 'block';
+          var measData = JSON.parse(this.responseText);
+          document.getElementById("ir_energy_counter_address").value = measData.ir_energy_counter_address;
+          document.getElementById("ir_relay_description").value = measData.ir_relay_description;          
+
+          // Set IR Relay Mode
+          console.log("IR relay mode:", measData.ir_external_relay_mode);
+          IrRelayModeIds = ["ir_relay_mode_nc", "ir_relay_mode_man", "ir_relay_mode_limit"];
+          if (measData.ir_external_relay_mode) {
+            document.getElementById(IrRelayModeIds[measData.ir_external_relay_mode]).checked = true;            
+          }          
+          if (measData.ir_external_relay_mode == 0)
+            descriptionOFF();
+          else
+            descriptionON();                      
+
+          // Set IR Counter
+          console.log("IR counter enabled:", measData.ir_energy_counter_enabled);
+          IrCounterEnabledIds = ["ir_counter_disabled", "ir_counter_enabled"];
+          if (measData.ir_energy_counter_enabled) {
+            document.getElementById(IrCounterEnabledIds[measData.ir_energy_counter_enabled]).checked = true;
+          }
+          if (measData.ir_energy_counter_enabled == 0)
+            addressOFF();
+          else
+            addressON();
+          
+        }
+      };
+      xhttp.open("GET", "/settings?_=" + new Date().getTime(), true); //add timestamp to avoid browser caching
+      xhttp.send();
+    }
+
+    updateData();
+  </script>
+</body>
+
+</html>

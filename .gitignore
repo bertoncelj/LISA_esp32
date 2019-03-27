@@ -17,6 +17,10 @@ tmp/
 temp/
 stuk/
 
+#ignore pictures
+*.jpg
+*.png
+
 #ignore for debuging
 Output.txt
 test01.txt

@@ -1,0 +1,174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+
+<head>
+  <link rel="stylesheet" type="text/css" href="light_style.css">
+  <title>Iskra iHUB Lite</title>
+</head>
+
+<body>
+  <iframe name="hiddenFrame" style="width:0;height:0;border:0; border:none; display:none;"></iframe>
+  <div id="loader" class="loader" style="display:block" ></div>
+  <table id="t01">
+    <tbody>
+      <tr style="font-weight: bold; font-size: 200%; font-family: Verdana;text-align: center;">
+        <td> <img src="iskra_logo1.jpg" alt="Iskra"></td>
+        <td></td>
+        <td>iHUB SETTINGS</td>
+      </tr>
+      <tr>
+        <th></th>
+        <th></th>
+        <th></th>
+      </tr>
+      <tr style="height: 10px;"><td></td></tr>
+      <tr>
+        <td valign="top">
+          <div class="vertical-menu">
+            <a href="/index.html">iHUB status</a>
+            <a href="/settings_general.html" class="active">iHUB Settings</a>
+            <a href="/rs485_devices.html">RS485 Devices</a>
+            <a href="/wifi_devices.html">WiFi Devices</a>
+            <a href="/counters.html">Counters</a>
+            <a href="/measurements.html">Measurements</a>
+            <a href="/graph.html">Power Graph</a>
+            <a href="/demands.html">Max. Demands</a>
+            <a href="/settings.html">Device Settings</a>
+            <a href="/bicom.html">Bicom control</a>
+            <!--<a href="/edit">File Browser</a> -->
+            <a href="/update">Upgrade</a>
+          </div>
+        </td>
+        <td></td>
+        <td valign="top">        
+          <table id="t02">
+            <tr>
+              <div class="topnav">
+                <a class="active" href="/settings_general.html">General</a>
+                <a href="settings_communication.html">Communication</a>
+                <a href="settings_IR.html">IR Devices</a>
+                <a href="settings_RS485.html">RS485 Devices</a>
+              </div>
+              <h2></h2>
+              <form action="/settings_parse" target="hiddenFrame">
+              <div style="display:none;" id="devicesDiv" >
+                <fieldset>
+                  <legend>General settings</legend>
+                  <br> Description:
+                  <br>
+                  <input type="text" name="description" id="description" size="40" maxlength="39">
+                  <br>
+                  <br>  Location:
+                  <br>
+                  <input type="text" name="location" id="location" size="40" maxlength="39">
+                  <br>
+                </fieldset>
+                <br>
+                <fieldset>
+                  <legend>Time settings</legend>                  
+                  <br>
+                  <legend>Time synchronization:</legend>
+                  <input id="ntp_off" type="radio" name="time_sync_src" value="0" onclick="if(this.checked){ntpOFF()}"> No Synchronization <br>
+                  <input id="ntp_on" type="radio" name="time_sync_src" value="1" onclick="if(this.checked){ntpON()}"> Ethernet NTP <br>                                    
+                  <br>  NTP Server 1:
+                  <br>
+                  <input type="text" name="ntp_server1" id="ntp_server1" size="40" maxlength="39">
+                  <br>
+                  <br>  NTP Server 2:
+                  <br>
+                  <input type="text" name="ntp_server2" id="ntp_server2" size="40" maxlength="39">
+                  <br>
+                  <br>  NTP Server 3:
+                  <br>
+                  <input type="text" name="ntp_server3" id="ntp_server3" size="40" maxlength="39">
+                  <br>
+                  <br>  Time zone offset (minutes):
+                  <br>
+                  <input type="text" name="timezone" id="timezone" size="5" maxlength="4">
+                  <br>                  
+                  <br>
+                  <legend>Daylight Saving Time:</legend>
+                  <input id="dst_off" type="radio" name="time_dst" value="0"> No <br>
+                  <input id="dst_on" type="radio" name="time_dst" value="1"> Yes <br>                  
+                </fieldset>
+                <br>
+                <input type="submit" value="Save settings" title="Press to send, then wait a few seconds" onclick="showLoader()" >
+                </div>                
+              </form>
+              </tr>
+          </table>
+        </td>      
+    </tbody>
+  </table>
+
+  <script type="text/javascript">
+    var pollSettings = setInterval(updateData, 2000);
+    
+    function stopPollingSettings() {
+      clearInterval(pollSettings);        
+    } 
+    
+    function showLoader() {      
+      console.log("showLoader()");        
+      document.getElementById("loader").style.display = 'block';
+      document.getElementById("devicesDiv").style.display = 'none';
+      pollSettings = setInterval(updateData, 2000);              
+    }
+    
+    function ntpON() {
+      console.log("ntpON()");
+      document.getElementById("ntp_server1").disabled = false;
+      document.getElementById("ntp_server2").disabled = false;
+      document.getElementById("ntp_server3").disabled = false;    
+    }
+    
+    function ntpOFF() {
+      console.log("ntpOFF()");
+      document.getElementById("ntp_server1").disabled = true;
+      document.getElementById("ntp_server2").disabled = true;
+      document.getElementById("ntp_server3").disabled = true;    
+    }
+
+    function updateData() {
+      console.log("updateData()");
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          console.log("updateData(): got Data:", this.responseText);
+          stopPollingSettings(); 
+          document.getElementById("loader").style.display = 'none';
+          document.getElementById("devicesDiv").style.display = 'block'; 
+          var measData = JSON.parse(this.responseText);
+          document.getElementById("description").value = measData.description;
+          document.getElementById("location").value = measData.location;
+          document.getElementById("timezone").value = measData.timezone;
+          document.getElementById("ntp_server1").value = measData.ntp_server1;
+          document.getElementById("ntp_server2").value = measData.ntp_server2;
+          document.getElementById("ntp_server3").value = measData.ntp_server3;
+
+          // Set NTP radio button
+          console.log("ntp val:", measData.time_sync_src);
+          if(measData.time_sync_src){
+            document.getElementById(["ntp_off", "ntp_on"][measData.time_sync_src]).checked = true;
+          }
+          if (measData.time_sync_src == 0)
+            ntpOFF();
+          else
+            ntpON();
+          
+          // Set DST radio button
+          console.log("dst val:", measData.time_dst);
+          if(measData.time_dst){
+            document.getElementById(["dst_off", "dst_on"][measData.time_dst]).checked = true;
+          }
+        }
+      };
+      xhttp.open("GET", "/settings?_=" + new Date().getTime(), true); //add timestamp to avoid browser caching
+      xhttp.send();
+    }
+
+    updateData();
+  </script>
+</body>
+
+</html>

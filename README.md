@@ -6,5 +6,10 @@ LOG:
            
 
 SERIAL_DEBUG:
-     gtkterm -p /dev/ttyUSB1 -s 19200
+     gtkterm -p /dev/ttyUSB1 -s 19200 
+            Must have SERIAL_8N2
 
+
+CONNECT: 
+    RJAVA_MODRA_CRNA on LISA board.
+    TTL on pin D4 and GND for debug

@@ -18,6 +18,16 @@
 #define debug_array(msg, size)
 #endif
 
+//STATES
+typedef enum e_state_machine {
+    CONNECT,
+    CONF_CONNECT,
+    
+    WRITE
+} STATES;
+
+STATES state = CONNECT;
+
 //SoftwareSerial Serial1(13,15);
 const byte numChars = 128;
 
@@ -25,7 +35,10 @@ const byte numChars = 128;
 byte send_break[] = {0x01, 0x42, 0x30, 0x03, 0x71};
 byte send_sign[] = {0x2F, 0x3F, 0x21, 0x0D, 0x0A};
 byte send_nullpetena[] = {0x06, 0x30, 0x35, 0x31, 0x0D, 0x0A};
+
 byte rec_LISA_key[] = {0x2F, 0x4C, 0x31, 0x35, 0x41, 0x5F, 0x49, 0x44, 0x0D, 0x0A};
+byte rec_pZero[] = {0x01, 0x50, 0x30, 0x02, 0x28, 0x00, 0x29, 0x03, 0x60};
+
 byte send_read[] = {0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x34, 0x3A, 0x30, 0x30, 0x28, 0x29};
 
 byte debug_arr[] = {0x06, 0x30, 0x35, 0x31, 0x0D, 0x0A};
@@ -47,26 +60,60 @@ void setup() {
 
 void connectToLisa() {
     int rtn_len;
-    int tryGetLisa = 0;
-   // while(true) { //more is equal true
-        tryGetLisa ++;
-        //send break
-        delay(100);
-        Serial1.write(send_break, sizeof(send_break));
-        Serial.write(send_break, sizeof(send_break));
-        delay(900); // MUST be 900 ms !!!!
-        debug_println();
-        //send sign
-        
-        Serial1.write(send_sign, sizeof(send_sign));
-        Serial.write(send_sign, sizeof(send_sign)); 
+    boolean rtn_func;
+    //send break
+    delay(100);
+    Serial1.write(send_break, sizeof(send_break));
+    Serial.write(send_break, sizeof(send_break));
 
-        //wait for return message lisa
+    delay(900); // MUST be 900 ms !!!!
+    debug_println();
 
-        rtn_len = recvWithendMarker();
-        checkIfCorrectData(receivedChars,rtn_len,  rec_LISA_key, sizeof(rec_LISA_key)/sizeof(byte));
-        showNewData();
-    //}
+    //send sign
+    Serial1.write(send_sign, sizeof(send_sign));
+    Serial.write(send_sign, sizeof(send_sign)); 
+
+    //wait for return message lisa
+    rtn_len = recvWithendMarker();
+
+    showNewData();
+    rtn_func = checkIfCorrectData(receivedChars, rtn_len, rec_LISA_key, sizeof(rec_LISA_key)/sizeof(byte));
+    if (rtn_func == true) {
+        debug_println("state is now CONF_CONNECT");
+        state = CONF_CONNECT;
+    } else {
+
+    }
+}
+
+void confConnect() {
+    boolean rtn_func;
+    int rtn_len;
+
+    //SEND message 051
+    debug_println("Send 051"); 
+    debug_array(send_nullpetena, sizeof(send_nullpetena));
+    Serial.write(send_nullpetena, sizeof(send_nullpetena));
+
+    //wait for return message lisa
+    rtn_len = recvWithendMarker();
+    
+    showNewData();
+    rtn_func = checkIfCorrectData(receivedChars, rtn_len, rec_pZero, sizeof(rec_pZero)/sizeof(byte));
+    if (rtn_func == true) {
+        debug_println("state is now WIRTE");
+        state = WRITE;
+    } else {
+        debug_println("We didn't recive P01, so reset");
+        debug_println("state is now CONNECT");
+        state = CONNECT;
+    }
+}
+
+void serialFlash() {
+    while(Serial.available() > 0) {
+        char t = Serial.read();
+    }
 }
 
 bool checkIfCorrectData(char *t, int len_t, byte *r, int len_r) {
@@ -74,9 +121,14 @@ bool checkIfCorrectData(char *t, int len_t, byte *r, int len_r) {
     int idx;
     debug_println(len_t);
     debug_println(len_r);
-    if (len_t == len_r) {
+    if (len_t+1 == len_r) {
         debug_println("Arrays are equal len");
+        debug_print("COMPARE: ");
         for (idx = 0; idx < len_t; idx ++){
+            debug_print(t[idx]);
+            debug_print("=");
+            debug_print(r[idx]);
+            debug_print(", ");
             if(t[idx] != r[idx]) return false;
         }
         debug_println("Array CORRECT");
@@ -95,7 +147,7 @@ bool checkIfCorrectData(char *t, int len_t, byte *r, int len_r) {
 int recvWithendMarker() {
     static byte ndx = 0;
     int rtn_len;
-    byte endMarker = 0x0A; //can be /r
+    byte endMarker = 0x0A; //now is \n , but can be /r
     char rc;
 
     debug_println("Start to read:");
@@ -133,51 +185,24 @@ void showNewData() {
 }
 
 void loop(){
-    connectToLisa();
-    delay(1000);
-    delay(1000);
+    //STATE MACHINE
+    switch(state) {
+        case CONNECT:
+            debug_println("We are in CONNECT");
+            serialFlash();
+            connectToLisa();
+        break;
+        case CONF_CONNECT:
+            debug_println("We are in CONF_CONNECT");
+            confConnect();
+        break;
+
+        case WRITE:
+            debug_println("We are is state WRITE");
+        break;
+
+        default:
+            debug_println("default state"); 
+        }
+    delay(2000);
 }
-/*
-void loop() {
-  nextStep = false;
-  Serial.write(send_break, sizeof(send_break));
-  Serial.write(send_sign, sizeof(send_sign));
-  delay(3000);
- 
- recvWithEndMarker();
- showNewData();
- delay(1000);
- if(nextStep == true){
-  Serial.write(send_nullpetena, sizeof(send_nullpetena));
-  delay(1000);
-  recvWithEndMarker();
-  showNextData();
-  Serial.println("konc");
- }
-}
-
-void weInRead(){
-  while(1){
-    newData = true;
-    delay(1000);
-    Serial.write(send_read, sizeof(send_read));
-    delay(1000);
- recvWithEndMarker();
- showNewData();
- delay(1000);     
-        
-  }
-}
-
-
-void showNextData() {
-  Serial.print("We got it ...");
- Serial.println(receivedChars);
- weInRead();
- if(receivedChars[4] == jedan) {
- Serial.println("we got lisa in"); 
- nextStep = true;
- }}}
- */
-
-

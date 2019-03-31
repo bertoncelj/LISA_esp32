@@ -10,7 +10,7 @@ ESP8266WebServer server(80);
 
 const int led = 13;
 
-void handleRoot() {
+void hFandleRoot() {
   digitalWrite(led, 1);
   server.send(200, "text/plain", "hello from esp8266!");
   digitalWrite(led, 0);

@@ -22,7 +22,8 @@
 typedef enum e_state_machine {
     CONNECT,
     CONF_CONNECT,
-    
+    WAIT_FOR_P0,
+
     WRITE
 } STATES;
 
@@ -62,6 +63,8 @@ void connectToLisa() {
     int rtn_len;
     boolean rtn_func;
     //send break
+    delay(3000);
+    
     delay(100);
     Serial1.write(send_break, sizeof(send_break));
     Serial.write(send_break, sizeof(send_break));
@@ -73,6 +76,7 @@ void connectToLisa() {
     Serial1.write(send_sign, sizeof(send_sign));
     Serial.write(send_sign, sizeof(send_sign)); 
 
+    delay(3000);
     //wait for return message lisa
     rtn_len = recvWithendMarker();
 
@@ -81,6 +85,7 @@ void connectToLisa() {
     if (rtn_func == true) {
         debug_println("state is now CONF_CONNECT");
         state = CONF_CONNECT;
+
     } else {
 
     }
@@ -94,14 +99,44 @@ void confConnect() {
     debug_println("Send 051"); 
     debug_array(send_nullpetena, sizeof(send_nullpetena));
     Serial.write(send_nullpetena, sizeof(send_nullpetena));
-
+    
+    delay(3000);
     //wait for return message lisa
     rtn_len = recvWithendMarker();
+    if (rtn_len == 0){
+        debug_println("rtn_len is 0");
+        state = WAIT_FOR_P0;
+        return; 
+    }
     
     showNewData();
-    rtn_func = checkIfCorrectData(receivedChars, rtn_len, rec_pZero, sizeof(rec_pZero)/sizeof(byte));
+    //rtn_func = checkIfCorrectData(receivedChars, rtn_len, rec_pZero, sizeof(rec_pZero)/sizeof(byte));
+    rtn_func = true;
     if (rtn_func == true) {
         debug_println("state is now WIRTE");
+        state = WRITE;
+    } else {
+        debug_println("We didn't recive P01, so reset");
+        debug_println("state is now CONNECT");
+        state = CONNECT;
+    }
+}
+
+void waitForP0(){
+    boolean rtn_func;
+    int rtn_len = 0;
+    rtn_len = recvWithendMarker();
+    if (rtn_len == 0){
+        debug_println("rtn_len is 0");
+        return; 
+    }
+    
+    showNewData();
+    //rtn_func = checkIfCorrectData(receivedChars, rtn_len, rec_pZero, sizeof(rec_pZero)/sizeof(byte));
+    rtn_func = true;
+    if (rtn_func == true) {
+        debug_println("state is now WIRTE");
+        delay(10000);
         state = WRITE;
     } else {
         debug_println("We didn't recive P01, so reset");
@@ -123,7 +158,7 @@ bool checkIfCorrectData(char *t, int len_t, byte *r, int len_r) {
     debug_println(len_r);
     if (len_t+1 == len_r) {
         debug_println("Arrays are equal len");
-        debug_print("COMPARE: ");
+     
         for (idx = 0; idx < len_t; idx ++){
             debug_print(t[idx]);
             debug_print("=");
@@ -146,7 +181,7 @@ bool checkIfCorrectData(char *t, int len_t, byte *r, int len_r) {
 
 int recvWithendMarker() {
     static byte ndx = 0;
-    int rtn_len;
+    int rtn_len = 0;
     byte endMarker = 0x0A; //now is \n , but can be /r
     char rc;
 
@@ -188,17 +223,24 @@ void loop(){
     //STATE MACHINE
     switch(state) {
         case CONNECT:
+            debug_println("V1.0");
             debug_println("We are in CONNECT");
-            serialFlash();
+           // serialFlash();
             connectToLisa();
         break;
         case CONF_CONNECT:
+            delay(3000);
             debug_println("We are in CONF_CONNECT");
             confConnect();
+        break;
+        case WAIT_FOR_P0:
+            waitForP0();
         break;
 
         case WRITE:
             debug_println("We are is state WRITE");
+            state = CONNECT;
+            delay(5000);
         break;
 
         default:

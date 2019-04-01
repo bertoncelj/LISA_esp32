@@ -30,6 +30,12 @@ byte rec_LISA_key[] = {0x2F, 0x4C, 0x31, 0x35, 0x41, 0x5F, 0x49, 0x44, 0x0D, 0x0
 byte rec_pZero[] = {0x01, 0x50, 0x30, 0x02, 0x28, 0x00, 0x29, 0x03, 0x60};
 
 //STATES
+typedef struct stc_data {
+    byte *StcArr;
+    int LenArr;
+    byte endMarker;
+} STC_LIST;
+
 typedef enum e_state_machine {
     CONNECT,
     CONF_CONNECT,
@@ -40,25 +46,23 @@ typedef enum e_state_machine {
     WRITE
 } enumSTAT;
 
-typedef enum e_rx_arr_len {
-    LisaKeyLen = 10,
-    pZeroLen = 9
-} enumArrLen;
-
 typedef struct stc_state_machine {
 
     enumSTAT state = CONNECT;
     enumSTAT from;
     enumSTAT next;
     boolean newData = false;
-    byte endMarker = 0x0A; //now is \n , but can be /r
+    byte receivedChars[MAX_REC_ARR_LEN]; // an array to store the received data
+    int LenRecArr;
 
-    byte *checkArr;
-    char receivedChars[MAX_REC_ARR_LEN]; // an array to store the received data
-    int recArrLen;
+    STC_LIST recArr;
+
 } STATES;
 
 STATES ST;
+STC_LIST arrLisaKey = { .StcArr = rec_LISA_key, .LenArr = 10, .endMarker = 0x0A};
+STC_LIST arrPZero = { .StcArr = rec_pZero, .LenArr = 9, .endMarker = 0x60};
+
 
 //=======================================================================
 
@@ -85,34 +89,19 @@ void connectToLisa()
     delay(3000);
 
     //next from curr checkARR
-    fillST(CONF_CONNECT, CONNECT, WAIT_RX, rec_LISA_key);
+    fillST(CONF_CONNECT, CONNECT, WAIT_RX, arrLisaKey);
 }
-/*
-    //wait for return message lisa
-    rtn_len = recvWithendMarker();
 
-    showNewData();
-    rtn_func = checkIfCorrectData(ST.receivedChars, rtn_len, rec_LISA_key, sizeof(rec_LISA_key)/sizeof(byte));
-    if (rtn_func == true) {
-        debug_println("state is now CONF_CONNECT");
-        ST.state = CONF_CONNECT;
-
-    } 
-}
-*/
-
-void fillST(enumSTAT nextState, enumSTAT fromState, enumSTAT currState, byte *checkArr) 
+void fillST(enumSTAT nextState, enumSTAT fromState, enumSTAT currState, STC_LIST checkArr) 
 {
-    ST.state = WAIT_RX;
-    ST.from = CONNECT;
-    ST.next = CONF_CONNECT;
-
+    ST.state = currState;
+    ST.from = fromState;
+    ST.next = nextState;
+    ST.recArr = checkArr;
 }
 
 void confConnect() 
 {
-    boolean rtn_func;
-    int rtn_len;
 
     //SEND message 051
     debug_println("Send 051"); 
@@ -121,31 +110,17 @@ void confConnect()
     
     delay(3000);
     //wait for return message lisa
-    rtn_len = recvWithendMarker();
-    if (rtn_len == 0){
-        debug_println("rtn_len is 0");
-        ST.state = WAIT_FOR_P0;
-        return; 
-    }
+
+    //next from curr checkARR
+    fillST(WRITE, CONF_CONNECT,  WAIT_RX, arrPZero);
     
-    showNewData();
-    //rtn_func = checkIfCorrectData(ST.receivedChars, rtn_len, rec_pZero, sizeof(rec_pZero)/sizeof(byte));
-    rtn_func = true;
-    if (rtn_func == true) {
-        debug_println("state is now WIRTE");
-        ST.state = WRITE;
-    } else {
-        debug_println("We didn't recive P01, so reset");
-        debug_println("state is now CONNECT");
-        ST.state = CONNECT;
-    }
 }
 
 void recvWithendMarker() 
 {
     static byte ndx = 0;
     int rtn_len = 0;
-    char rc;
+    byte rc;
 
     debug_println("Start to read:");
     debug_println(ST.newData);
@@ -154,7 +129,7 @@ void recvWithendMarker()
         debug_hex(rc);
         debug_print(" ");
 
-        if (rc != (char) ST.endMarker) {
+        if (rc !=  ST.recArr.endMarker) {
             ST.receivedChars[ndx] = rc;
             ndx++;
             if (ndx >= MAX_REC_ARR_LEN) {
@@ -163,8 +138,8 @@ void recvWithendMarker()
             }
         }
         else {
-            ST.receivedChars[ndx] = '\0'; // terminate the string
-            ST.recArrLen = ndx;
+            ST.receivedChars[ndx] = rc; // terminate the string
+            ST.LenRecArr = ndx + 1;
             ndx = 0;
             ST.newData = true;
             debug_println("END");
@@ -178,20 +153,14 @@ void waitRX()
     recvWithendMarker();
     delay(50); //wait a bit for buffer to fill
     if(ST.newData == true) {
-        //next from curr checkARR
-        fillST(CONF_CONNECT, CONNECT, WAIT_RX, rec_LISA_key);
-        ST.state = checkRX();
+        ST.state = CHECK_RX;
     }
 }
 
 void checkRX()
 {
     debug_println("waitRX()");
-    rtn_func = checkIfCorrectData(ST.receivedChars, rtn_len, rec_pZero, sizeof(rec_pZero)/sizeof(byte));
-
-
-
-
+    checkIfCorrectData();
 }
 
 void breakLISA() 
@@ -203,30 +172,6 @@ void breakLISA()
     delay(900); // MUST be 900 ms !!!!
 }
 
-void waitForP0()
-{
-    boolean rtn_func;
-    int rtn_len = 0;
-    rtn_len = recvWithendMarker();
-    if (rtn_len == 0){
-        debug_println("rtn_len is 0");
-        return; 
-    }
-    
-    showNewData();
-    //rtn_func = checkIfCorrectData(ST.receivedChars, rtn_len, rec_pZero, sizeof(rec_pZero)/sizeof(byte));
-    rtn_func = true;
-    if (rtn_func == true) {
-        debug_println("state is now WIRTE");
-        delay(10000);
-        ST.state = WRITE;
-    } else {
-        debug_println("We didn't recive P01, so reset");
-        debug_println("state is now CONNECT");
-        ST.state = CONNECT;
-    }
-}
-
 void serialFlash() 
 {
     while(Serial.available() > 0) {
@@ -234,22 +179,34 @@ void serialFlash()
     }
 }
 
-bool checkIfCorrectData(char *t, int len_t, byte *r, int len_r) 
+bool checkIfCorrectData() 
 {
+    
+    debug_println("In check");
     //check lenght of arrays
+    byte *t;
+    byte *r;
+    int len_t = ST.recArr.LenArr;
+    int len_r = ST.LenRecArr;
     int idx;
+
+    t =  ST.recArr.StcArr;
+    r = ST.receivedChars;
     debug_println(len_t);
     debug_println(len_r);
-    if (len_t+1 == len_r) {
+
+    if (len_t == len_r) {
         debug_println("Arrays are equal len");
         for (idx = 0; idx < len_t; idx ++){
             debug_hex(t[idx]);
             debug_print("=");
-            debug_print(r[idx]);
+            debug_hex(r[idx]);
             debug_print(", ");
             if(t[idx] != r[idx]) return false;
         }
         debug_println("Array CORRECT");
+        ST.state = ST.next;
+        ST.newData = false;
         return true;
     }
     else if (len_t == 0 ) {
@@ -267,7 +224,7 @@ void showNewData()
 {
     if (ST.newData == true) {
         debug_println("we got data:");
-        debug_println(ST.receivedChars);
+        debug_println("DATA ARRIVED");
         ST.newData = false;
     }
 }
@@ -277,7 +234,7 @@ void loop()
     //STATE MACHINE
     switch(ST.state) {
         case CONNECT:
-            debug_println("V1.1");
+            debug_println("V1.2");
             debug_println("We are in CONNECT");
            // serialFlash();
             connectToLisa();
@@ -287,10 +244,6 @@ void loop()
             delay(3000);
             debug_println("We are in CONF_CONNECT");
             confConnect();
-        break;
-
-        case WAIT_FOR_P0:
-            waitForP0();
         break;
 
         case CHECK_RX:
@@ -303,8 +256,6 @@ void loop()
 
         case WRITE:
             debug_println("We are is ST.state WRITE");
-            ST.state = CONNECT;
-            delay(5000);
         break;
 
         default:

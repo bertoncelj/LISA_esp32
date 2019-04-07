@@ -18,32 +18,80 @@
 #define debug_array(msg, size)
 #endif
 
-
 #define MAX_REC_ARR_LEN 128
+
+
+byte name[] = {0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x32, 0x3A, 0x30, 0x37, 0x28, 0x29, 0x03, 0x66}; 
+
+byte name[] = {0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x32, 0x3A, 0x30, 0x39, 0x28, 0x29, 0x03, 0x68}; 
+
+byte name[] = {0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x34, 0x3A, 0x30, 0x30, 0x28, 0x29, 0x03, 0x67}; 
+
+byte name[] = {0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x34, 0x3A, 0x30, 0x31, 0x28, 0x29, 0x03, 0x66}; 
+
+byte name[] = {0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x35, 0x3A, 0x33, 0x30, 0x28, 0x29, 0x03, 0x65}; 
+
+byte name[] = {0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x34, 0x3A, 0x30, 0x39, 0x28, 0x29, 0x03, 0x6E}; 
+
+byte name[] = {0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x34, 0x3A, 0x30, 0x33, 0x28, 0x29, 0x03, 0x64}; 
+
+byte name[] = {0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x34, 0x3A, 0x30, 0x34, 0x28, 0x29, 0x03, 0x63}; 
+
+byte name[] = {0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x34, 0x3A, 0x30, 0x35, 0x28, 0x29, 0x03, 0x62}; 
+
+byte name[] = {0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x34, 0x3A, 0x30, 0x36, 0x28, 0x29, 0x03, 0x61}; 
+
+byte name[] = {0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x35, 0x3A, 0x33, 0x31, 0x28, 0x29, 0x03, 0x64}; 
+
+byte name[] = {0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x34, 0x3A, 0x30, 0x37, 0x28, 0x29, 0x03, 0x60}; 
+
+byte name[] = {0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x34, 0x3A, 0x30, 0x38, 0x28, 0x29, 0x03, 0x6F}; 
+
 
 //Send messages
 byte send_break[] = {0x01, 0x42, 0x30, 0x03, 0x71};
 byte send_sign[] = {0x2F, 0x3F, 0x21, 0x0D, 0x0A};
 byte send_nullpetena[] = {0x06, 0x30, 0x35, 0x31, 0x0D, 0x0A};
 
+//Send read
+byte send_read_U1[] = {0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x32, 0x3A, 0x30, 0x37, 0x28, 0x29};   //read temperature 000207
+//byte send_read_temp2[] = {0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x34, 0x3A, 0x30, 0x30, 0x28, 0x29, 0x03, 0x67};
+
+
+byte send_read_temp2[] = {0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x32, 0x3A, 0x30, 0x39, 0x28, 0x29, 0x03, 0x68}; //branje bat 00 0209
+
+
+
 byte rec_LISA_key[] = {0x2F, 0x4C, 0x31, 0x35, 0x41, 0x5F, 0x49, 0x44, 0x0D, 0x0A};
 byte rec_pZero[] = {0x01, 0x50, 0x30, 0x02, 0x28, 0x00, 0x29, 0x03, 0x60};
 
+
+int SaveTemp;
+
+typedef struct send_and_get_read {
+    byte *send_arr_read;
+    int *save_int;
+} READ_REG;
+
 //STATES
 typedef struct stc_data {
-    byte *StcArr;
-    int LenArr;
+    byte *stcArr;
+    int lenArr;
     byte endMarker;
+    boolean check;
+    int *saveValue;
 } STC_LIST;
 
 typedef enum e_state_machine {
     CONNECT,
     CONF_CONNECT,
     WAIT_FOR_P0,
-    CHECK_RX,
+    FULL_CHECK_RX,
+    NOT_CHECK_RX,
+    SAVE_RX,
     WAIT_RX,
 
-    WRITE
+    READ
 } enumSTAT;
 
 typedef struct stc_state_machine {
@@ -59,10 +107,30 @@ typedef struct stc_state_machine {
 
 } STATES;
 
-STATES ST;
-STC_LIST arrLisaKey = { .StcArr = rec_LISA_key, .LenArr = 10, .endMarker = 0x0A};
-STC_LIST arrPZero = { .StcArr = rec_pZero, .LenArr = 9, .endMarker = 0x60};
+STC_LIST arrLisaKeyRX = {
+                        .stcArr = rec_LISA_key,
+                        .lenArr = 10,
+                        .endMarker = 0x0A,
+                        .check = true
+                        };
 
+STC_LIST arrPZeroRX = { 
+                        .stcArr = rec_pZero,
+                        .lenArr = 9,
+                        .endMarker = 0x60,
+                        .check = true
+                      };
+
+STC_LIST ReadTemp = {  
+                        .stcArr = send_read_temp2,
+                        .lenArr = 8,
+                        .endMarker = 0xFF,
+                        .check = false,
+                        .saveValue = &SaveTemp
+                    };
+
+
+STATES ST;
 
 //=======================================================================
 
@@ -89,7 +157,7 @@ void connectToLisa()
     delay(3000);
 
     //next from curr checkARR
-    fillST(CONF_CONNECT, CONNECT, WAIT_RX, arrLisaKey);
+    fillST(CONF_CONNECT, CONNECT, WAIT_RX, arrLisaKeyRX);
 }
 
 void fillST(enumSTAT nextState, enumSTAT fromState, enumSTAT currState, STC_LIST checkArr) 
@@ -102,7 +170,6 @@ void fillST(enumSTAT nextState, enumSTAT fromState, enumSTAT currState, STC_LIST
 
 void confConnect() 
 {
-
     //SEND message 051
     debug_println("Send 051"); 
     debug_array(send_nullpetena, sizeof(send_nullpetena));
@@ -112,7 +179,7 @@ void confConnect()
     //wait for return message lisa
 
     //next from curr checkARR
-    fillST(WRITE, CONF_CONNECT,  WAIT_RX, arrPZero);
+    fillST(READ, CONF_CONNECT,  WAIT_RX, arrPZeroRX);
     
 }
 
@@ -121,7 +188,7 @@ void recvWithendMarker()
     static byte ndx = 0;
     int rtn_len = 0;
     byte rc;
-
+    
     debug_println("Start to read:");
     debug_println(ST.newData);
     while (Serial.available() > 0 && ST.newData == false) {
@@ -129,7 +196,7 @@ void recvWithendMarker()
         debug_hex(rc);
         debug_print(" ");
 
-        if (rc !=  ST.recArr.endMarker) {
+        if (rc !=  ST.recArr.endMarker && ndx < ST.recArr.lenArr) {
             ST.receivedChars[ndx] = rc;
             ndx++;
             if (ndx >= MAX_REC_ARR_LEN) {
@@ -145,6 +212,7 @@ void recvWithendMarker()
             debug_println("END");
         }
     }
+    debug_println("");
 }
 
 void waitRX() 
@@ -152,8 +220,14 @@ void waitRX()
     debug_println("waitRX()");
     recvWithendMarker();
     delay(50); //wait a bit for buffer to fill
-    if(ST.newData == true) {
-        ST.state = CHECK_RX;
+    if(ST.newData == true && ST.recArr.check == true) {
+        ST.state = FULL_CHECK_RX;
+    } else if(ST.newData == true && ST.recArr.check == false) {
+        //for just read RX, don't check RX arr
+        ST.state = SAVE_RX;
+    } else {
+        debug_println("ERROR STATE!!!");
+
     }
 }
 
@@ -181,16 +255,15 @@ void serialFlash()
 
 bool checkIfCorrectData() 
 {
-    
     debug_println("In check");
     //check lenght of arrays
     byte *t;
     byte *r;
-    int len_t = ST.recArr.LenArr;
+    int len_t = ST.recArr.lenArr;
     int len_r = ST.LenRecArr;
     int idx;
 
-    t =  ST.recArr.StcArr;
+    t =  ST.recArr.stcArr;
     r = ST.receivedChars;
     debug_println(len_t);
     debug_println(len_r);
@@ -219,7 +292,6 @@ bool checkIfCorrectData()
     }
 }
 
-
 void showNewData() 
 {
     if (ST.newData == true) {
@@ -229,9 +301,99 @@ void showNewData()
     }
 }
 
+void sendRead() {
+    //statc count list;
+    //list  = [asd, asd, aasd]
+    // for elm in list:
+    static int nextRead;
+    STC_LIST arrREADS[3] = {ReadTemp};
+    delay(100);
+    debug_println("READ_TEMP");
+    debug_array(send_read_temp2, sizeof(send_read_temp2));
+    Serial.write(send_read_temp2, sizeof(send_read_temp2));
+    delay(90); // MUST be 900 ms !!!!
+    //next from curr checkARR
+    
+    fillST(READ, READ, WAIT_RX,arrREADS[0]);
+}
+
+int hexToInt(int *arrSaveValue, int arr_len) {
+    int rtnInt = 0; 
+    int i;
+    int multiplayer[4] = {4096, 256,16, 1};
+    int mult = 0;
+    debug_println("HexToInt");
+    for (i = 0; i < arr_len; i++){
+        debug_println(arrSaveValue[i]);
+    }
+    debug_println("");
+    for(i = 0; i < arr_len; i++){
+        rtnInt = arrSaveValue[i] * multiplayer[i] + rtnInt;
+    }
+    debug_println("RTN INT");
+    debug_println(rtnInt);
+    return rtnInt;
+}
+
+boolean saveRX() {
+    debug_println("In saveRX");
+
+    byte *r;
+    int len_r = ST.LenRecArr;
+    int idx;
+    bool inSaveModeBetweenParam = false;
+
+    static int idx_saveValue = 0;
+    static int arrsaveValue[10];
+
+    r = ST.receivedChars;
+    debug_println(len_r);
+
+    debug_println("RX SAVED: ");
+    for (idx = 0; idx < len_r; idx ++){
+        if (r[idx] == 0x29) inSaveModeBetweenParam = false;
+        if (inSaveModeBetweenParam == true) {
+            debug_print("SaveInSaveVAl");
+            debug_print(r[idx]);
+            debug_println("");
+            r[idx] -= 0x30;
+            if(r[idx] > 10) r[idx] -= 0x07;
+            arrsaveValue[idx_saveValue] += r[idx];
+            idx_saveValue ++;
+        }
+        if (r[idx] == 0x28) inSaveModeBetweenParam = true;  
+        
+        debug_print(r[idx]);
+        debug_print(", ");
+    }
+
+    debug_println("idx_sV:");
+    debug_println(idx_saveValue);
+    
+    int rtn_int = hexToInt(&arrsaveValue[0], idx_saveValue);
+
+    //restet global arr to all vals to 0
+    for (idx = 0; idx < idx_saveValue; idx ++){
+        arrsaveValue[idx] = 0;
+    }
+    idx_saveValue = 0; //reset to 0 cuz is static
+
+    debug_print("\n");
+    debug_print ("save value: ");
+    debug_print(rtn_int);
+    debug_print("\n");
+    debug_println("Going to state: ");
+    debug_println(ST.next);
+    ST.state = ST.next;
+    ST.newData = false;
+    return true;
+}
+
 void loop()
 {
     //STATE MACHINE
+    debug_print("curState:"); 
+    debug_println(ST.state);
     switch(ST.state) {
         case CONNECT:
             debug_println("V1.2");
@@ -246,16 +408,21 @@ void loop()
             confConnect();
         break;
 
-        case CHECK_RX:
+        case FULL_CHECK_RX:
             checkRX();
+        break;
+
+        case SAVE_RX:
+            saveRX();
         break;
 
         case WAIT_RX:
             waitRX();
         break;
 
-        case WRITE:
-            debug_println("We are is ST.state WRITE");
+        case READ:
+            debug_println("We are is ST.state READ");
+            sendRead();
         break;
 
         default:

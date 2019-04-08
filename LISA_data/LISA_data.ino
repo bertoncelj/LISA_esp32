@@ -92,10 +92,10 @@ byte rec_pZero[] = {0x01, 0x50, 0x30, 0x02, 0x28, 0x00, 0x29, 0x03, 0x60};
 
 byte *r_arr_names[] = {r_arr_Temp, r_arr_Vbat, r_arr_U1, r_arr_U2, r_arr_Upov, r_arr_ANG, r_arr_ANG1, r_arr_ANG2, r_arr_U3, r_arr_U4, r_arr_ANG_tot1, r_arr_ANG3, r_arr_ANG4};
 
-int lisa_names[] = {lisa_temp, lisa_Vbat, lisa_U1, lisa_U2, lisa_Upov, lisa_ANG, lisa_ANG1, lisa_ANG2, lisa_U3, lisa_U4, lisa_ANG_tot1, lisa_ANG3, lisa_ANG4};
+int *lisa_names[] = {&lisa_temp, &lisa_Vbat, &lisa_U1, &lisa_U2, &lisa_Upov, &lisa_ANG, &lisa_ANG1, &lisa_ANG2, &lisa_U3, &lisa_U4, &lisa_ANG_tot1, &lisa_ANG3, &lisa_ANG4};
 
+int *export_int;
 
-&nanan = *rtn_val
 int SaveTemp;
 
 //STATES
@@ -330,6 +330,15 @@ void printAllLisa() {
     debug_println(lisa_temp);
     debug_println(lisa_Vbat);
     debug_println(lisa_U1);
+    debug_println(lisa_U2);
+    debug_println(lisa_Upov);
+    debug_println(lisa_ANG);
+    debug_println(lisa_ANG1);
+    debug_println(lisa_ANG2);
+    debug_println(lisa_U3);
+    debug_println(lisa_U4);
+    debug_println(lisa_ANG_tot1);
+    debug_println(lisa_ANG3);
     debug_println("//////////////////////");
 }
 
@@ -338,7 +347,7 @@ void sendRead() {
     //list  = [asd, asd, aasd]
     // for elm in list:
     static int nextRead = 0;
-    int len_arr = 3;
+    int len_arr = 12;
 
     debug_println("..................");
     debug_print("READ NEXT position: ");
@@ -347,8 +356,8 @@ void sendRead() {
     ST.recArr.lenArr = 8;
     ST.recArr.endMarker = 0xFF;
     ST.recArr.check = false;
-    ST.recArr.saveValue = lisa_names[nextRead];
 
+    export_int = lisa_names[nextRead];
     nextRead ++;
     if (nextRead == len_arr) {
         nextRead = 0;
@@ -420,7 +429,7 @@ boolean saveRX() {
     }
     idx_saveValue = 0; //reset to 0 cuz is static
 
-    ST.recArr.saveValue = rtn_int;
+    *export_int = rtn_int;
     ST.state = ST.next;
     ST.newData = false;
     return true;
@@ -465,5 +474,4 @@ void loop()
         default:
             debug_println("default ST.state"); 
         }
-        delay(1000);
 }

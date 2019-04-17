@@ -154,6 +154,4 @@ STC_LIST ReadTemp = {
                     };
 
 
-
-
 #endif //param.h

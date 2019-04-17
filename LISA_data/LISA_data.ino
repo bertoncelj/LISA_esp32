@@ -1,8 +1,27 @@
 #include <SoftwareSerial.h>
 #include "param.h"
 
-STATES ST;
+//WIFI
+#include <ESP8266WiFi.h>
+#include <WiFiClient.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266mDNS.h>
 
+#ifndef APSSID
+#define APSSID "ESPap"
+#define APPSK  "thereisnospoon"
+#endif
+
+/* Set these to your desired credentials. */
+const char *ssid = APSSID;
+const char *password = APPSK;
+
+
+ESP8266WebServer server(80);
+
+const int led = 13;
+
+STATES ST;
 //=======================================================================
 
 void setup() 
@@ -11,6 +30,25 @@ void setup()
     Serial.begin(19200, SERIAL_8N2);  //morta bit 2 stop bita
     DEBUG_UART.begin(19200, SERIAL_8N2);
     while (!Serial);
+
+    ////WIFI///////
+    pinMode(led, OUTPUT);
+    digitalWrite(led, 0);
+
+    delay(1000);
+    /* You can remove the password parameter if you want the AP to be open. */
+    WiFi.softAP(ssid, password);
+
+    IPAddress myIP = WiFi.softAPIP();
+    
+    debug_println("Ip"); 
+    server.on("/", handleRoot);
+    server.on("/data", handleData);
+    server.on("/inline", []() {
+        server.send(200, "text/plain", "this works as well");
+    });
+    server.onNotFound(handleNotFound);
+    server.begin();
 }
 
 void connectToLisa() 
@@ -187,6 +225,7 @@ void printAllLisa() {
     debug_println(lisa_ANG_tot1);
     debug_println(lisa_ANG3);
     debug_println("//////////////////////");
+  
 }
 
 void sendRead() {
@@ -321,4 +360,93 @@ void loop()
         default:
             debug_println("default ST.state"); 
         }
+  server.handleClient();
+  MDNS.update();
+}
+
+
+
+
+/////////////////////////WIIFI////////////////////////////////
+
+void handleData() {
+  Serial.println("Sending root page");
+  digitalWrite(led, 1);
+  char temp[400];
+  int sec = millis() / 1000;
+  int min = sec / 60;
+  int hr = min / 60;
+
+  snprintf(temp, 400,
+
+           " %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
+
+    lisa_U1, lisa_U2, lisa_Upov, lisa_ANG, lisa_ANG1,
+    lisa_U3,lisa_U4, lisa_ANG2, lisa_ANG3,
+    lisa_Vbat, lisa_temp
+);
+  server.send(200, "text/html", temp);
+  digitalWrite(led, 0);
+}
+void handleRoot() {
+  Serial.println("Sending root page");
+  digitalWrite(led, 1);
+  char temp[1000];
+
+
+snprintf(temp, 1000, 
+"<html>\
+<head>\
+<title>Page Title</title>\
+</head>\
+<body>\
+<h1 style=\"color:red;\">ALISA DATA</h1>\
+<h3 style=\"color:blue;\">-----------  Measurements ----------</h3>\
+<h3>Voltage U1: %d </h3>\
+<h3>Voltage U2: %d </h3>\
+<h3>Voltage Uavg: %d </h3>\
+<h3>Angle <span style=\"color:red;\">ANG</span>: %d </h3>\
+<h3>Angle <span style=\"color:red;\">ANG1</span>: %d </h3>\
+<h3 style=\"color:blue;\">----------- Sensitive Measurements ----------</h3>\
+<h3>Voltage U3: %d </h3>\
+<h3>Voltage U4: %d </h3>\
+<h3>Angle <span style=\"color:red;\">ANG2</span>: %d </h3>\
+<h3>Angle <span style=\"color:red;\">ANG3</span>: %d </h3>\
+<h3 style=\"color:blue;\">----------- General Inforamtion ----------</h3>\
+<h3>Battery Voltage: %d mV</h3>\
+<h3>Temperature: %d C</h3>\
+</body>\
+</html>\
+",
+    lisa_U1, lisa_U2, lisa_Upov, lisa_ANG, lisa_ANG1,
+    lisa_U3,lisa_U4, lisa_ANG2, lisa_ANG3,
+    lisa_Vbat, lisa_temp
+);
+
+
+
+
+
+  server.send(200, "text/html", temp);
+  digitalWrite(led, 0);
+}
+
+void handleNotFound() {
+  Serial.println("Sending Not found page");
+  digitalWrite(led, 1);
+  String message = "File Not Found\n\n";
+  message += "URI: ";
+  message += server.uri();
+  message += "\nMethod: ";
+  message += (server.method() == HTTP_GET) ? "GET" : "POST";
+  message += "\nArguments: ";
+  message += server.args();
+  message += "\n";
+
+  for (uint8_t i = 0; i < server.args(); i++) {
+    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
+  }
+
+  server.send(404, "text/plain", message);
+  digitalWrite(led, 0);
 }

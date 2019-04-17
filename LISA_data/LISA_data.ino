@@ -16,6 +16,7 @@
 const char *ssid = APSSID;
 const char *password = APPSK;
 
+bool doneReadAll = false;
 
 ESP8266WebServer server(80);
 
@@ -51,7 +52,7 @@ void setup()
     server.begin();
 }
 
-void connectToLisa() 
+void connect_first_breakSign() 
 {
     int rtn_len;
     boolean rtn_func;
@@ -77,7 +78,7 @@ void fillST(enumSTAT nextState, enumSTAT fromState, enumSTAT currState, STC_LIST
     ST.recArr = checkArr;
 }
 
-void confConnect() 
+void connect_second_nullPetEna() 
 {
     //SEND message 051
     debug_println("Send 051"); 
@@ -89,7 +90,6 @@ void confConnect()
 
     //next from curr checkARR
     fillST(READ, CONF_CONNECT,  WAIT_RX, arrPZeroRX);
-    
 }
 
 void recvWithendMarker() 
@@ -136,7 +136,6 @@ void waitRX()
         ST.state = SAVE_RX;
     } else {
         debug_println("ERROR STATE!!!");
-
     }
 }
 
@@ -225,13 +224,16 @@ void printAllLisa() {
     debug_println(lisa_ANG_tot1);
     debug_println(lisa_ANG3);
     debug_println("//////////////////////");
-  
 }
 
-void sendRead() {
-    //statc count list;
-    //list  = [asd, asd, aasd]
-    // for elm in list:
+void read_paramsLisa(char *, int *) 
+{
+
+    
+}
+
+void sendRead()
+{
     static int nextRead = 0;
     int len_arr = 12;
 
@@ -243,20 +245,24 @@ void sendRead() {
     ST.recArr.endMarker = 0xFF;
     ST.recArr.check = false;
 
+    STC_LIST arrREADS[3] = {ReadTemp};
     export_int = lisa_names[nextRead];
     nextRead ++;
     if (nextRead == len_arr) {
+        doneReadAll = true;
         nextRead = 0;
         printAllLisa();
-        delay(5000);
+
+             //next   from   curr checkARR
+    fillST(WEB_REQ, READ, WEB_REQ, arrREADS[0]);
+        return;
     }
 
-    STC_LIST arrREADS[3] = {ReadTemp};
     debug_array(ST.recArr.stcArr, 16);
     Serial.write(ST.recArr.stcArr, 16);
     delay(200); // MUST be 900 ms !!!!
 
-    //next from curr checkARR
+        //next   from   curr checkARR
     fillST(READ, READ, WAIT_RX, arrREADS[0]);
 }
 
@@ -331,13 +337,13 @@ void loop()
             debug_println("V1.2");
             debug_println("We are in CONNECT");
            // serialFlash();
-            connectToLisa();
+            connect_first_breakSign();
         break;
 
         case CONF_CONNECT:
             delay(3000);
             debug_println("We are in CONF_CONNECT");
-            confConnect();
+            connect_second_nullPetEna();
         break;
 
         case FULL_CHECK_RX:
@@ -357,17 +363,17 @@ void loop()
             sendRead();
         break;
 
+        case WEB_REQ:
+            server.handleClient();
+            MDNS.update();
+        break;
+
         default:
             debug_println("default ST.state"); 
         }
-  server.handleClient();
-  MDNS.update();
 }
 
-
-
-
-/////////////////////////WIIFI////////////////////////////////
+/////////////////////////WIFI////////////////////////////////
 
 void handleData() {
   Serial.println("Sending root page");
@@ -389,7 +395,11 @@ void handleData() {
   digitalWrite(led, 0);
 }
 void handleRoot() {
-  Serial.println("Sending root page");
+    //next from curr checkARR
+    fillST(READ, WEB_REQ, READ, arrLisaKeyRX);
+  if ( doneReadAll == false) {
+    return;
+  }
   digitalWrite(led, 1);
   char temp[1000];
 
@@ -425,10 +435,9 @@ snprintf(temp, 1000,
 
 
 
-
-
   server.send(200, "text/html", temp);
   digitalWrite(led, 0);
+  doneReadAll = false;
 }
 
 void handleNotFound() {

@@ -115,6 +115,7 @@ typedef enum e_state_machine {
     NOT_CHECK_RX,
     SAVE_RX,
     WAIT_RX,
+    WEB_REQ,
 
     READ
 } enumSTAT;

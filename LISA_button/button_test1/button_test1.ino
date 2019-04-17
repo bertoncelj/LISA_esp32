@@ -9,52 +9,34 @@
  */
  
 #include <ESP8266WiFi.h>
-#include <WiFiClient.h>
-#include <ESP8266WebServer.h>
-#include <ESP8266mDNS.h>
-
-#ifndef APSSID
-#define APSSID "ESPap"
-#define APPSK  "thereisnospoon"
-#endif
-
-/* Set these to your desired credentials. */
-const char *ssid = APSSID;
-const char *password = APPSK;
  
+// change these values to match your network
+char ssid[] = "TP-LINK";       //  your network SSID (name)
+char pass[] = "poljchSpodnjiGeslo";    // your network password
  
-ESP8266WebServer server(80);
+WiFiServer server(80);
  
-const int led = 13;
-const int LED_Pin = 13;
-
 String header = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
 String html_1 = "<!DOCTYPE html><html><head><meta name='viewport' content='width=device-width, initial-scale=1.0'/><meta charset='utf-8'><style>body {font-size:140%;} #main {display: table; margin: auto;  padding: 0 10px 0 10px; } h2,{text-align:center; } .button { padding:10px 10px 10px 10px; width:100%;  background-color: #4CAF50; font-size: 120%;}</style><title>LED Control</title></head><body><div id='main'><h2>LED Control</h2>";
 String html_2 = "";
 String html_4 = "</div></body></html>";
  
 String request = "";
+int LED_Pin = D1;
  
 void setup() 
 {
-        pinMode(led, OUTPUT); 
-        digitalWrite(led, 0);
+    pinMode(LED_Pin, OUTPUT); 
  
-        Serial.begin(115200);
-        delay(500);
-        Serial.println(F("Serial started at 115200"));
-        Serial.println();
+      Serial.begin(9600);
+      delay(500);
+      Serial.println(F("Serial started at 9600"));
+      Serial.println();
  
-        /* You can remove the password parameter if you want the AP to be open. */
-        WiFi.softAP(ssid, password);
-        IPAddress myIP = WiFi.softAPIP();
-        Serial.print("AP IP address: ");
-        Serial.println(myIP);
-        Serial.print("AP name (ssid): ");
-        Serial.println(ssid);
-        Serial.print("Password: ");
-        Serial.println(password);
-
+      // We start by connecting to a WiFi network
+      Serial.print(F("Connecting to "));  Serial.println(ssid);
+      WiFi.begin(ssid, pass);
+ 
       while (WiFi.status() != WL_CONNECTED) 
       {
           Serial.print(".");    delay(500);
@@ -71,10 +53,9 @@ void setup()
  
 } // void setup()
  
- 
- 
 void loop() 
 {
+ 
     // Check if a client has connected
     WiFiClient client = server.available();
     if (!client)  {  return;  }

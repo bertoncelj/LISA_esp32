@@ -7,18 +7,14 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 
-#ifndef APSSID
-#define APSSID "ESPap"
-#define APPSK  "thereisnospoon"
-#endif
-
-/* Set these to your desired credentials. */
-const char *ssid = APSSID;
-const char *password = APPSK;
-
-bool doneReadAll = false;
+const char* ssid = "TP-LINK";
+const char* password = "poljchSpodnjiGeslo";
 
 ESP8266WebServer server(80);
+
+/* Set these to your desired credentials. */
+
+bool doneReadAll = false;
 
 const int led = 13;
 
@@ -33,23 +29,33 @@ void setup()
     while (!Serial);
 
     ////WIFI///////
-    pinMode(led, OUTPUT);
-    digitalWrite(led, 0);
 
-    delay(1000);
     /* You can remove the password parameter if you want the AP to be open. */
-    WiFi.softAP(ssid, password);
+    WiFi.begin(ssid, password);
 
-    IPAddress myIP = WiFi.softAPIP();
-    
-    debug_println("Ip"); 
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        debug_println("."); 
+    }
+
+    debug_print("Connect to "); 
+    debug_println(ssid); 
+    debug_print("IP add: "); 
+    debug_print(WiFi.localIP()); 
+
+    if (MDNS.begin("esp8266")) {
+        debug_println("MDNS responder started");
+    }
+
     server.on("/", handleRoot);
     server.on("/data", handleData);
     server.on("/inline", []() {
         server.send(200, "text/plain", "this works as well");
     });
     server.onNotFound(handleNotFound);
+
     server.begin();
+    debug_println("HTTP server started"); 
 }
 
 void connect_first_breakSign() 
@@ -136,6 +142,9 @@ void waitRX()
         ST.state = SAVE_RX;
     } else {
         debug_println("ERROR STATE!!!");
+        server.send(200, "text/plain", "RESET");
+        delay(5000);
+        ESP.restart();  
     }
 }
 
@@ -365,7 +374,6 @@ void loop()
 
         case WEB_REQ:
             server.handleClient();
-            MDNS.update();
         break;
 
         default:
@@ -379,9 +387,10 @@ void handleData() {
   Serial.println("Sending root page");
   digitalWrite(led, 1);
   char temp[400];
-  int sec = millis() / 1000;
-  int min = sec / 60;
-  int hr = min / 60;
+    fillST(READ, WEB_REQ, READ, arrLisaKeyRX);
+  if ( doneReadAll == false) {
+    return;
+  }
 
   snprintf(temp, 400,
 
@@ -440,22 +449,19 @@ snprintf(temp, 1000,
   doneReadAll = false;
 }
 
-void handleNotFound() {
-  Serial.println("Sending Not found page");
+void handleNotFound(){
   digitalWrite(led, 1);
   String message = "File Not Found\n\n";
   message += "URI: ";
   message += server.uri();
   message += "\nMethod: ";
-  message += (server.method() == HTTP_GET) ? "GET" : "POST";
+  message += (server.method() == HTTP_GET)?"GET":"POST";
   message += "\nArguments: ";
   message += server.args();
   message += "\n";
-
-  for (uint8_t i = 0; i < server.args(); i++) {
+  for (uint8_t i=0; i<server.args(); i++){
     message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
   }
-
   server.send(404, "text/plain", message);
   digitalWrite(led, 0);
 }

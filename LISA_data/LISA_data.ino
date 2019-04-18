@@ -49,6 +49,7 @@ void setup()
 
     server.on("/", handleRoot);
     server.on("/data", handleData);
+    server.on("/reset",handleManualReset);
     server.on("/inline", []() {
         server.send(200, "text/plain", "this works as well");
     });
@@ -244,7 +245,7 @@ void read_paramsLisa(char *, int *)
 void sendRead()
 {
     static int nextRead = 0;
-    int len_arr = 12;
+    int len_arr = 14;
 
     debug_println("..................");
     debug_print("READ NEXT position: ");
@@ -384,13 +385,10 @@ void loop()
 /////////////////////////WIFI////////////////////////////////
 
 void handleData() {
-  Serial.println("Sending root page");
-  digitalWrite(led, 1);
-  char temp[400];
-    fillST(READ, WEB_REQ, READ, arrLisaKeyRX);
-  if ( doneReadAll == false) {
-    return;
-  }
+    Serial.println("Sending root page");
+    digitalWrite(led, 1);
+    char temp[400];
+
 
   snprintf(temp, 400,
 
@@ -447,6 +445,13 @@ snprintf(temp, 1000,
   server.send(200, "text/html", temp);
   digitalWrite(led, 0);
   doneReadAll = false;
+}
+
+void handleManualReset(){
+        server.send(200, "text/plain", "manual reset ");
+
+        delay(5000);
+        ESP.restart();  
 }
 
 void handleNotFound(){

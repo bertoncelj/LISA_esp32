@@ -16,11 +16,14 @@ def meritevFunc(meritev):
     return end_str
 
 def lisa_mer(contents):
-    list_con = contents.split()
+    list_con = ""
+    contents =  str(contents)
     print(contents)
-    return str(contents)
-
-
+    list_con = contents.split(",")
+    print(list_con)
+    
+    text = " ".join(list_con[1:])
+    return str(text)
 
 def printToFile(file_path, whole_stc):
     filename = file_path
@@ -35,7 +38,7 @@ script, file_path, meritev = argv
 
 
 
-contents = urllib.request.urlopen("http://192.168.1.54/data").read()
+contents = urllib.request.urlopen("http://192.168.1.50/data").read()
 
 #contents = "0, 1, 2, 0, 4, 0, 33506"
 str1 = meritevFunc(meritev)

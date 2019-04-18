@@ -22,6 +22,11 @@
 #define MAX_REC_ARR_LEN 128
 
 // teperature
+//
+//index which increase every measures
+byte r_arr_index[] ={0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x32, 0x3A, 0x30, 0x37, 0x28, 0x29, 0x03, 0x66};
+int lisa_index;
+
 byte r_arr_Temp[] = {0x01, 0x52, 0x31, 0x02, 0x30, 0x30, 0x3A, 0x30, 0x32, 0x3A, 0x30, 0x37, 0x28, 0x29, 0x03, 0x66}; 
 int lisa_temp;
 
@@ -90,9 +95,9 @@ byte rec_LISA_key[] = {0x2F, 0x4C, 0x31, 0x35, 0x41, 0x5F, 0x49, 0x44, 0x0D, 0x0
 byte rec_pZero[] = {0x01, 0x50, 0x30, 0x02, 0x28, 0x00, 0x29, 0x03, 0x60};
 
 
-byte *r_arr_names[] = {r_arr_Temp, r_arr_Vbat, r_arr_U1, r_arr_U2, r_arr_Upov, r_arr_ANG, r_arr_ANG1, r_arr_ANG2, r_arr_U3, r_arr_U4, r_arr_ANG_tot1, r_arr_ANG3, r_arr_ANG4};
+byte *r_arr_names[] = {r_arr_index, r_arr_Temp, r_arr_Vbat, r_arr_U1, r_arr_U2, r_arr_Upov, r_arr_ANG, r_arr_ANG1, r_arr_ANG2, r_arr_U3, r_arr_U4, r_arr_ANG_tot1, r_arr_ANG3, r_arr_ANG4};
 
-int *lisa_names[] = {&lisa_temp, &lisa_Vbat, &lisa_U1, &lisa_U2, &lisa_Upov, &lisa_ANG, &lisa_ANG1, &lisa_ANG2, &lisa_U3, &lisa_U4, &lisa_ANG_tot1, &lisa_ANG3, &lisa_ANG4};
+int *lisa_names[] = {&lisa_index, &lisa_temp, &lisa_Vbat, &lisa_U1, &lisa_U2, &lisa_Upov, &lisa_ANG, &lisa_ANG1, &lisa_ANG2, &lisa_U3, &lisa_U4, &lisa_ANG_tot1, &lisa_ANG3, &lisa_ANG4};
 
 int *export_int;
 

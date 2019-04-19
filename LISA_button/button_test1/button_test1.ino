@@ -1,93 +1,126 @@
-/*
- * Sketch: ESP8266_LED_Control_04_Station_Mode
- * Control an LED from a web browser
- * Intended to be run on an ESP8266
- * 
- * Wait for the ESP8266 to connect to the local wifi
- * then use a web broswer to go it's ip address
- * 
- */
- 
 #include <ESP8266WiFi.h>
- 
-// change these values to match your network
-char ssid[] = "TP-LINK";       //  your network SSID (name)
-char pass[] = "poljchSpodnjiGeslo";    // your network password
- 
-WiFiServer server(80);
- 
-String header = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
-String html_1 = "<!DOCTYPE html><html><head><meta name='viewport' content='width=device-width, initial-scale=1.0'/><meta charset='utf-8'><style>body {font-size:140%;} #main {display: table; margin: auto;  padding: 0 10px 0 10px; } h2,{text-align:center; } .button { padding:10px 10px 10px 10px; width:100%;  background-color: #4CAF50; font-size: 120%;}</style><title>LED Control</title></head><body><div id='main'><h2>LED Control</h2>";
-String html_2 = "";
-String html_4 = "</div></body></html>";
- 
-String request = "";
-int LED_Pin = D1;
- 
-void setup() 
-{
-    pinMode(LED_Pin, OUTPUT); 
- 
-      Serial.begin(9600);
-      delay(500);
-      Serial.println(F("Serial started at 9600"));
-      Serial.println();
- 
-      // We start by connecting to a WiFi network
-      Serial.print(F("Connecting to "));  Serial.println(ssid);
-      WiFi.begin(ssid, pass);
- 
-      while (WiFi.status() != WL_CONNECTED) 
-      {
-          Serial.print(".");    delay(500);
-      }
-      Serial.println("");
-      Serial.println(F("[CONNECTED]"));
-      Serial.print("[IP ");              
-      Serial.print(WiFi.localIP()); 
-      Serial.println("]");
- 
-      // start a server
-      server.begin();
-      Serial.println("Server started");
- 
-} // void setup()
- 
-void loop() 
-{
- 
-    // Check if a client has connected
-    WiFiClient client = server.available();
-    if (!client)  {  return;  }
- 
-    // Read the first line of the request
-    request = client.readStringUntil('\r');
- 
-    if       ( request.indexOf("LEDON") > 0 )  { digitalWrite(LED_Pin, HIGH);  }
-    else if  ( request.indexOf("LEDOFF") > 0 ) { digitalWrite(LED_Pin, LOW);   }
- 
- 
-    // Get the LED pin status and create the LED status message
-    if (digitalRead(LED_Pin) == HIGH) 
-    {
-        // the LED is on so the button needs to say turn it off
-       html_2 = "<form id='F1' action='LEDOFF'><input class='button' type='submit' value='Turn off the LED' ></form><br>";
-    }
-    else                              
-    {
-        // the LED is off so the button needs to say turn it on
-        html_2 = "<form id='F1' action='LEDON'><input class='button' type='submit' value='Turn on the LED' ></form><br>";
-    }
- 
- 
-    client.flush();
- 
-    client.print( header );
-    client.print( html_1 );    
-    client.print( html_2 );
-    client.print( html_4);
- 
-    delay(5);
-  // The client will actually be disconnected when the function returns and 'client' object is detroyed
- 
-} // void loop()
+#include <ESP8266WebServer.h>
+
+/*Put your SSID & Password*/
+const char* ssid = "TP-LINK_A23BA4";
+const char* password = "tamalasobca";
+
+ESP8266WebServer server(80);
+
+uint8_t LED1pin = D7;
+bool LED1status = LOW;
+
+uint8_t LED2pin = D6;
+bool LED2status = LOW;
+
+void setup() {
+  Serial.begin(115200);
+  delay(100);
+  pinMode(LED1pin, OUTPUT);
+  pinMode(LED2pin, OUTPUT);
+
+  Serial.println("Connecting to ");
+  Serial.println(ssid);
+
+  //connect to your local wi-fi network
+  WiFi.begin(ssid, password);
+
+  //check wi-fi is connected to wi-fi network
+  while (WiFi.status() != WL_CONNECTED) {
+  delay(1000);
+  Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected..!");
+  Serial.print("Got IP: ");  Serial.println(WiFi.localIP());
+
+  server.on("/", handle_OnConnect);
+  server.on("/led1on", handle_led1on);
+  server.on("/led1off", handle_led1off);
+  server.on("/led2on", handle_led2on);
+  server.on("/led2off", handle_led2off);
+  server.onNotFound(handle_NotFound);
+
+  server.begin();
+  Serial.println("HTTP server started");
+}
+void loop() {
+  server.handleClient();
+  if(LED1status)
+  {digitalWrite(LED1pin, HIGH);}
+  else
+  {digitalWrite(LED1pin, LOW);}
+  
+  if(LED2status)
+  {digitalWrite(LED2pin, HIGH);}
+  else
+  {digitalWrite(LED2pin, LOW);}
+}
+
+void handle_OnConnect() {
+  LED1status = LOW;
+  LED2status = LOW;
+  Serial.println("GPIO7 Status: OFF | GPIO6 Status: OFF");
+  server.send(200, "text/html", SendHTML(LED1status,LED2status)); 
+}
+
+void handle_led1on() {
+  LED1status = HIGH;
+  Serial.println("GPIO7 Status: ON");
+  server.send(200, "text/html", SendHTML(true,LED2status)); 
+}
+
+void handle_led1off() {
+  LED1status = LOW;
+  Serial.println("GPIO7 Status: OFF");
+  server.send(200, "text/html", SendHTML(false,LED2status)); 
+}
+
+void handle_led2on() {
+  LED2status = HIGH;
+  Serial.println("GPIO6 Status: ON");
+  server.send(200, "text/html", SendHTML(LED1status,true)); 
+}
+
+void handle_led2off() {
+  LED2status = LOW;
+  Serial.println("GPIO6 Status: OFF");
+  server.send(200, "text/html", SendHTML(LED1status,false)); 
+}
+
+void handle_NotFound(){
+  server.send(404, "text/plain", "Not found");
+}
+
+String SendHTML(uint8_t led1stat,uint8_t led2stat){
+  String ptr = "<!DOCTYPE html> <html>\n";
+  ptr +="<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n";
+  ptr +="<title>LED Control</title>\n";
+  ptr +="<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}\n";
+  ptr +="body{margin-top: 50px;} h1 {color: #444444;margin: 50px auto 30px;} h3 {color: #444444;margin-bottom: 50px;}\n";
+  ptr +=".button {display: block;width: 80px;background-color: #1abc9c;border: none;color: white;padding: 13px 30px;text-decoration: none;font-size: 25px;margin: 0px auto 35px;cursor: pointer;border-radius: 4px;}\n";
+  ptr +=".button-on {background-color: #1abc9c;}\n";
+  ptr +=".button-on:active {background-color: #16a085;}\n";
+  ptr +=".button-off {background-color: #34495e;}\n";
+  ptr +=".button-off:active {background-color: #2c3e50;}\n";
+  ptr +="p {font-size: 14px;color: #888;margin-bottom: 10px;}\n";
+  ptr +="</style>\n";
+  ptr +="</head>\n";
+  ptr +="<body>\n";
+  ptr +="<h1>ESP8266 Web Server</h1>\n";
+    ptr +="<h3>Using Station(STA) Mode</h3>\n";
+  
+   if(led1stat)
+  {ptr +="<p>LED1 Status: ON</p><a class=\"button button-off\" href=\"/led1off\">OFF</a>\n";}
+  else
+  {ptr +="<p>LED1 Status: OFF</p><a class=\"button button-on\" href=\"/led1on\">ON</a>\n";}
+
+  if(led2stat)
+  {ptr +="<p>LED2 Status: ON</p><a class=\"button button-off\" href=\"/led2off\">OFF</a>\n";}
+  else
+  {ptr +="<p>LED2 Status: OFF</p><a class=\"button button-on\" href=\"/led2on\">ON</a>\n";}
+
+  ptr +="</body>\n";
+  ptr +="</html>\n";
+  return ptr;
+}

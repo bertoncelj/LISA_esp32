@@ -10,6 +10,10 @@
 const char* ssid = "TP-LINK";
 const char* password = "poljchSpodnjiGeslo";
 
+//Lipnica
+//const char* ssid = "TP-LINK_A23BA4";
+//const char* password = "tamalasobca";
+
 ESP8266WebServer server(80);
 
 /* Set these to your desired credentials. */
@@ -439,8 +443,6 @@ snprintf(temp, 1000,
     lisa_U3,lisa_U4, lisa_ANG2, lisa_ANG3,
     lisa_Vbat, lisa_temp
 );
-
-
 
   server.send(200, "text/html", temp);
   digitalWrite(led, 0);

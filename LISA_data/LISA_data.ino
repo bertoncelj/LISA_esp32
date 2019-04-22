@@ -178,6 +178,14 @@ void waitRXArr ()
     debug_println(" ");
     debug_println(saveArrIndex);
     delay(2000);
+    //print all 
+    int i;
+    char val[4];
+    debug_println("VREDNOSTI!!!!");
+    for ( i = 0; i < 536; i++) {
+        debug_println(get_arr_graph[i]);
+        debug_print(" ");
+    }
 
     debug_println("We got : ");
     debug_println(saveArrIndex);
@@ -511,13 +519,13 @@ void handleManualReset(){
 void handleGraph() {
 
   int i;
-  String message = "GRAPH DISPALY\n\n";
+  String message;
 
-  for(i = 0; i < 536; i++) {
+  for(i = 24; i < 536; i++) {
     message += String(get_arr_graph[i]);
     message += " ";
   }
-  server.send(404, "text/plain", message);
+  server.send(200, "text/html", message);
   fillST(GET_GRAPH, WEB_REQ, GET_GRAPH, arrLisaKeyRX);
 
 }

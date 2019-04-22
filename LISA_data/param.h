@@ -25,7 +25,7 @@
 //
 // graphCall
 byte r_arr_graph[] = {0x01, 0x4F, 0x02, 0x28, 0x29, 0x03, 0x4F};
-byte get_arr_graph[600];
+char get_arr_graph[600];
 
 //
 //index which increase every measures

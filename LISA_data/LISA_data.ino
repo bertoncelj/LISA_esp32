@@ -7,12 +7,12 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 
-const char* ssid = "TP-LINK";
-const char* password = "poljchSpodnjiGeslo";
+//const char* ssid = "TP-LINK";
+//const char* password = "poljchSpodnjiGeslo";
 
 //Lipnica
-//const char* ssid = "TP-LINK_A23BA4";
-//const char* password = "tamalasobca";
+const char* ssid = "TP-LINK_A23BA4";
+const char* password = "tamalasobca";
 
 ESP8266WebServer server(80);
 
@@ -52,6 +52,7 @@ void setup()
     }
 
     server.on("/", handleRoot);
+    server.on("/g", handleGraph);
     server.on("/data", handleData);
     server.on("/reset",handleManualReset);
     server.on("/inline", []() {
@@ -137,20 +138,52 @@ void recvWithendMarker()
 
 void waitRX() 
 {
+    static int count_missRX = 0;
     debug_println("waitRX()");
-    recvWithendMarker();
     delay(50); //wait a bit for buffer to fill
+    recvWithendMarker();
     if(ST.newData == true && ST.recArr.check == true) {
         ST.state = FULL_CHECK_RX;
     } else if(ST.newData == true && ST.recArr.check == false) {
         //for just read RX, don't check RX arr
         ST.state = SAVE_RX;
+    } else if(ST.newData == false && ST.recArr.check == false && count_missRX < 3) {
+        count_missRX ++;
+
     } else {
         debug_println("ERROR STATE!!!");
         server.send(200, "text/plain", "RESET");
         delay(5000);
         ESP.restart();  
     }
+}
+
+void waitRXArr ()
+{
+    debug_println("waitRXArr()");
+    int saveArrIndex = 0;
+    byte rc;
+    while (saveArrIndex < 536){
+        debug_println(saveArrIndex);
+        debug_println(" ");
+        while (Serial.available() > 0) {
+            rc = Serial.read();
+            //debug_hex(rc);
+           // debug_print(" ");
+            get_arr_graph[saveArrIndex] = rc;
+            saveArrIndex ++;
+        }
+    }
+
+    debug_println(" ");
+    debug_println(saveArrIndex);
+    delay(2000);
+
+    debug_println("We got : ");
+    debug_println(saveArrIndex);
+    debug_println(" elements");
+    saveArrIndex = 0;
+    ST.state = WEB_REQ;
 }
 
 void checkRX()
@@ -249,7 +282,7 @@ void read_paramsLisa(char *, int *)
 void sendRead()
 {
     static int nextRead = 0;
-    int len_arr = 14;
+    int len_arr = 15;
 
     debug_println("..................");
     debug_print("READ NEXT position: ");
@@ -341,6 +374,16 @@ boolean saveRX() {
     return true;
 }
 
+void sendGraphRequest()
+{
+
+    //send sign
+    debug_array(r_arr_graph, sizeof(r_arr_graph));
+    Serial.write(r_arr_graph, sizeof(r_arr_graph)); 
+    
+    fillST(WEB_REQ, CONF_CONNECT,  WAIT_RX_ARR, arrPZeroRX);
+}
+
 void loop()
 {
     //STATE MACHINE
@@ -368,9 +411,18 @@ void loop()
             saveRX();
         break;
 
+        case GET_GRAPH:
+            sendGraphRequest();
+        break;
+
         case WAIT_RX:
             waitRX();
         break;
+
+        case WAIT_RX_ARR:
+            waitRXArr();
+        break;
+
 
         case READ:
             debug_println("We are is ST.state READ");
@@ -396,9 +448,9 @@ void handleData() {
 
   snprintf(temp, 400,
 
-           " %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
+           " %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
 
-    lisa_U1, lisa_U2, lisa_Upov, lisa_ANG, lisa_ANG1,
+    lisa_index, lisa_U1, lisa_U2, lisa_Upov, lisa_ANG, lisa_ANG1,
     lisa_U3,lisa_U4, lisa_ANG2, lisa_ANG3,
     lisa_Vbat, lisa_temp
 );
@@ -422,6 +474,7 @@ snprintf(temp, 1000,
 </head>\
 <body>\
 <h1 style=\"color:red;\">ALISA DATA</h1>\
+<h3>Measurements: %d </h3>\
 <h3 style=\"color:blue;\">-----------  Measurements ----------</h3>\
 <h3>Voltage U1: %d </h3>\
 <h3>Voltage U2: %d </h3>\
@@ -439,7 +492,7 @@ snprintf(temp, 1000,
 </body>\
 </html>\
 ",
-    lisa_U1, lisa_U2, lisa_Upov, lisa_ANG, lisa_ANG1,
+    lisa_index,lisa_U1, lisa_U2, lisa_Upov, lisa_ANG, lisa_ANG1,
     lisa_U3,lisa_U4, lisa_ANG2, lisa_ANG3,
     lisa_Vbat, lisa_temp
 );
@@ -454,6 +507,19 @@ void handleManualReset(){
 
         delay(5000);
         ESP.restart();  
+}
+void handleGraph() {
+
+  int i;
+  String message = "GRAPH DISPALY\n\n";
+
+  for(i = 0; i < 536; i++) {
+    message += String(get_arr_graph[i]);
+    message += " ";
+  }
+  server.send(404, "text/plain", message);
+  fillST(GET_GRAPH, WEB_REQ, GET_GRAPH, arrLisaKeyRX);
+
 }
 
 void handleNotFound(){

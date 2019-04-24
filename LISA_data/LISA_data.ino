@@ -42,6 +42,7 @@ void setup()
         debug_println("."); 
     }
 
+
     debug_print("Connect to "); 
     debug_println(ssid); 
     debug_print("IP add: "); 
@@ -62,13 +63,16 @@ void setup()
 
     server.begin();
     debug_println("HTTP server started"); 
+
+    //next from curr checkARR
+    //fillST(CONF_CONNECT, CONNECT, CONNECT, arrLisaKeyRX);
 }
 
 void connect_first_breakSign() 
 {
     int rtn_len;
     boolean rtn_func;
-    delay(3000);
+    //delay(3000);
     //send break
     breakLISA();
 
@@ -101,7 +105,7 @@ void connect_second_nullPetEna()
     //wait for return message lisa
 
     //next from curr checkARR
-    fillST(READ, CONF_CONNECT,  WAIT_RX, arrPZeroRX);
+    fillST(READ, CONF_CONNECT,  WEB_REQ, arrPZeroRX);
 }
 
 void recvWithendMarker() 
@@ -140,7 +144,7 @@ void waitRX()
 {
     static int count_missRX = 0;
     debug_println("waitRX()");
-    delay(50); //wait a bit for buffer to fill
+    delay(200); //wait a bit for buffer to fill
     recvWithendMarker();
     if(ST.newData == true && ST.recArr.check == true) {
         ST.state = FULL_CHECK_RX;
@@ -149,12 +153,13 @@ void waitRX()
         ST.state = SAVE_RX;
     } else if(ST.newData == false && ST.recArr.check == false && count_missRX < 3) {
         count_missRX ++;
-
     } else {
         debug_println("ERROR STATE!!!");
+        debug_println("Connecet again");
         server.send(200, "text/plain", "RESET");
         delay(5000);
-        ESP.restart();  
+        //next from curr checkARR
+        fillST(CONF_CONNECT, CONNECT, CONNECT, arrLisaKeyRX);
     }
 }
 
@@ -251,6 +256,13 @@ bool checkIfCorrectData()
     }
     else {
         debug_println("ERROR: arrays are diff len");
+        server.send(200, "text/plain", "RESET");
+        delay(5000);
+        //next from curr checkARR
+        //flush serial bufffer
+        while (Serial.available() > 0) 
+            Serial.read();
+        fillST(CONF_CONNECT, CONNECT, CONNECT, arrLisaKeyRX);
         return false;
     }
 }
@@ -266,6 +278,7 @@ void showNewData()
 
 void printAllLisa() {
     debug_println("//////////////////////");
+    debug_println(lisa_index);
     debug_println(lisa_temp);
     debug_println(lisa_Vbat);
     debug_println(lisa_U1);
@@ -278,29 +291,29 @@ void printAllLisa() {
     debug_println(lisa_U4);
     debug_println(lisa_ANG_tot1);
     debug_println(lisa_ANG3);
+    debug_println(lisa_ANG4);
     debug_println("//////////////////////");
-}
-
-void read_paramsLisa(char *, int *) 
-{
-
-    
 }
 
 void sendRead()
 {
     static int nextRead = 0;
-    int len_arr = 15;
+    int len_arr = 14;
 
+    //flush serial bufffer
+    if (nextRead == 0) {
+        while (Serial.available() > 0) 
+            Serial.read();
+    }
     debug_println("..................");
     debug_print("READ NEXT position: ");
     debug_println(nextRead);
+    STC_LIST arrREADS[3] = {ReadTemp};
     ST.recArr.stcArr = r_arr_names[nextRead];
     ST.recArr.lenArr = 8;
     ST.recArr.endMarker = 0xFF;
     ST.recArr.check = false;
 
-    STC_LIST arrREADS[3] = {ReadTemp};
     export_int = lisa_names[nextRead];
     nextRead ++;
     if (nextRead == len_arr) {
@@ -308,16 +321,17 @@ void sendRead()
         nextRead = 0;
         printAllLisa();
 
-             //next   from   curr checkARR
-    fillST(WEB_REQ, READ, WEB_REQ, arrREADS[0]);
+        //next   from   curr checkARR
+        handleRoot();
+        fillST(WEB_REQ, READ, WEB_REQ, arrREADS[0]);
         return;
     }
 
+    debug_println("Send next data:");
     debug_array(ST.recArr.stcArr, 16);
     Serial.write(ST.recArr.stcArr, 16);
-    delay(200); // MUST be 900 ms !!!!
 
-        //next   from   curr checkARR
+    //next   from   curr checkARR
     fillST(READ, READ, WAIT_RX, arrREADS[0]);
 }
 
@@ -384,7 +398,6 @@ boolean saveRX() {
 
 void sendGraphRequest()
 {
-
     //send sign
     debug_array(r_arr_graph, sizeof(r_arr_graph));
     Serial.write(r_arr_graph, sizeof(r_arr_graph)); 
@@ -431,7 +444,6 @@ void loop()
             waitRXArr();
         break;
 
-
         case READ:
             debug_println("We are is ST.state READ");
             sendRead();
@@ -454,68 +466,117 @@ void handleData() {
     char temp[400];
 
 
-  snprintf(temp, 400,
-
+    snprintf(temp, 400,
            " %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
-
     lisa_index, lisa_U1, lisa_U2, lisa_Upov, lisa_ANG, lisa_ANG1,
     lisa_U3,lisa_U4, lisa_ANG2, lisa_ANG3,
     lisa_Vbat, lisa_temp
-);
-  server.send(200, "text/html", temp);
-  digitalWrite(led, 0);
+    );
+    server.send(200, "text/html", temp);
+    digitalWrite(led, 0);
 }
+
 void handleRoot() {
     //next from curr checkARR
-    fillST(READ, WEB_REQ, READ, arrLisaKeyRX);
-  if ( doneReadAll == false) {
-    return;
-  }
-  digitalWrite(led, 1);
-  char temp[1000];
+    debug_println("if!");
+    if ( doneReadAll == false) {
+        debug_println("return!");
+        fillST(READ, WEB_REQ, READ, arrLisaKeyRX);
+    } else {
+        fillST(WEB_REQ, WEB_REQ, WEB_REQ, arrLisaKeyRX);
+        digitalWrite(led, 1);
+        char temp[3000];
 
+        debug_println("print website !");
+        snprintf(temp, 2500, 
+        "<html>\
+        <head>\
+        <style>\
+        table, th, td {\
+        \
+        border-collapse: collapse;\
+        }\
+        th, td {\
+        padding: 15px;\
+        text-align: center;\
+        }\
+        table#t01 {\
+        width: 100%;    \
+        background-color: #f1f1c1;\
+        }\
+        </style>\
+        </head>\
+        <body>\
+        \
+        <h1 align=\"center\" style=\"color:red;\">ALISA DATA</h1>\
+        <h3>Measurements: %d </h3>\
+        <h3 align=\"center\" style=\"color:blue;\">-----------  Measurements ----------</h3>\
+        <table style=\"width:100%\">\
+        <tr>\
+            <th style=\"color:blue;\">Left</th>\
+            <th></th> \
+            <th style=\"color:blue;\">Right</th>\
+        </tr>\
+        <tr>\
+            <td>U1: <font size=\"6\"><b>%d</b></font></td>\
+            <td>Upop: <font size=\"6\"><b>%d</b></font></td>\
+            <td>U2: <font size=\"6\"><b>%d</b></font></td>\
+        </tr>\
+        <tr>\
+            <td>ANG1: <font size=\"6\"><b>%d</b></font></td>\
+            <td>ANG_tot: <font size=\"6\"><b>%d</b></font></td>\
+            <td>ANG2: <font size=\"6\"><b>%d</b></font></td>\
+        </tr>\
+        <tr>\
+        </tr>\
+        </table>\
+        <br>\
+        <h3 align=\"center\" style=\"color:blue;\">-----------  Measurements amplified ----------</h3>\
+        <table id=\"t01\">\
+        <tr>\
+            <th style=\"color:blue;\">Left</th>\
+            <th></th> \
+            <th style=\"color:blue;\">Right</th>\
+        </tr>\
+        <tr>\
+            <td>U3: <font size=\"6\"><b>%d</b></font></td>\
+            <td></td>\
+            <td>U4: <font size=\"6\"><b>%d</b></font></td>\
+        </tr>\
+        <tr>\
+            <td>ANG3: <font size=\"6\"><b>%d</b></font></td>\
+            <td></td>\
+            <td>ANG4: <font size=\"6\"><b>%d</b></font></td>\
+        </tr>\
+        <tr>\
+        \
+        </tr>\
+        </table>\
+        <h3></h3>\
+        <h3 style=\"color:blue;\">----------- General Inforamtion ----------</h3>\
+        <h3>Battery Voltage: %d mV</h3>\
+        <h3>Temperature: %d C</h3>\
+        </body>\
+        </html>\
+            ",
+            lisa_index,
+            lisa_U1, lisa_Upov, lisa_U2, lisa_ANG1, lisa_ANG_tot1, lisa_ANG2,
+            lisa_U3, lisa_U4, lisa_ANG3, lisa_ANG4,
+            lisa_Vbat, lisa_temp
+        );
 
-snprintf(temp, 1000, 
-"<html>\
-<head>\
-<title>Page Title</title>\
-</head>\
-<body>\
-<h1 style=\"color:red;\">ALISA DATA</h1>\
-<h3>Measurements: %d </h3>\
-<h3 style=\"color:blue;\">-----------  Measurements ----------</h3>\
-<h3>Voltage U1: %d </h3>\
-<h3>Voltage U2: %d </h3>\
-<h3>Voltage Uavg: %d </h3>\
-<h3>Angle <span style=\"color:red;\">ANG</span>: %d </h3>\
-<h3>Angle <span style=\"color:red;\">ANG1</span>: %d </h3>\
-<h3 style=\"color:blue;\">----------- Sensitive Measurements ----------</h3>\
-<h3>Voltage U3: %d </h3>\
-<h3>Voltage U4: %d </h3>\
-<h3>Angle <span style=\"color:red;\">ANG2</span>: %d </h3>\
-<h3>Angle <span style=\"color:red;\">ANG3</span>: %d </h3>\
-<h3 style=\"color:blue;\">----------- General Inforamtion ----------</h3>\
-<h3>Battery Voltage: %d mV</h3>\
-<h3>Temperature: %d C</h3>\
-</body>\
-</html>\
-",
-    lisa_index,lisa_U1, lisa_U2, lisa_Upov, lisa_ANG, lisa_ANG1,
-    lisa_U3,lisa_U4, lisa_ANG2, lisa_ANG3,
-    lisa_Vbat, lisa_temp
-);
-
-  server.send(200, "text/html", temp);
-  digitalWrite(led, 0);
-  doneReadAll = false;
+        server.send(200, "text/html", temp);
+        digitalWrite(led, 0);
+        doneReadAll = false;
+    }
 }
 
 void handleManualReset(){
         server.send(200, "text/plain", "manual reset ");
-
         delay(5000);
         ESP.restart();  
 }
+
 void handleGraph() {
 
   int i;
@@ -527,7 +588,6 @@ void handleGraph() {
   }
   server.send(200, "text/html", message);
   fillST(GET_GRAPH, WEB_REQ, GET_GRAPH, arrLisaKeyRX);
-
 }
 
 void handleNotFound(){

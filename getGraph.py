@@ -29,9 +29,14 @@ def lisa_mer(contents):
     num = 0
     a = 0
     graphData = []
-    while len(contents) != num:
-        one = contents[num]
-        two = contents[num+1]
+    asciData = [] 
+    for elm in contents:
+        asciData.append(chr(int(elm)))
+        
+    print(asciData)
+    while len(asciData) != num:
+        one = asciData[num]
+        two = asciData[num+1]
         print(a)
         graphData.append(one + two)
         a = a + 1
@@ -65,19 +70,11 @@ def lisa_mer(contents):
     figure(1)
     plot(x, data1, x, data2, x, data3, x, data4)
     show()
-    
-def printToFile(file_path, whole_stc):
-    filename = file_path
-    write_f = open(filename, 'a')
-    
-    write_f.write("%s\n" % whole_stc)
-    
-    write_f.close()
 
 
 script, file_path, meritev = argv
 
-contents = urllib.request.urlopen("http://192.168.1.103/g").read()
+contents = urllib.request.urlopen("http://192.168.1.100/g").read()
 print(contents)
 str2 = lisa_mer(contents)
 

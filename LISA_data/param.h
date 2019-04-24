@@ -25,7 +25,7 @@
 //
 // graphCall
 byte r_arr_graph[] = {0x01, 0x4F, 0x02, 0x28, 0x29, 0x03, 0x4F};
-char get_arr_graph[600];
+byte get_arr_graph[600];
 
 //
 //index which increase every measures
@@ -105,7 +105,6 @@ byte *r_arr_names[] = {r_arr_index, r_arr_Temp, r_arr_Vbat, r_arr_U1, r_arr_U2, 
 int *lisa_names[] = {&lisa_index, &lisa_temp, &lisa_Vbat, &lisa_U1, &lisa_U2, &lisa_Upov, &lisa_ANG, &lisa_ANG1, &lisa_ANG2, &lisa_U3, &lisa_U4, &lisa_ANG_tot1, &lisa_ANG3, &lisa_ANG4};
 
 int *export_int;
-
 int SaveTemp;
 
 //STATES

@@ -7,12 +7,12 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 
-//const char* ssid = "TP-LINK";
-//const char* password = "poljchSpodnjiGeslo";
+const char* ssid = "TP-LINK";
+const char* password = "poljchSpodnjiGeslo";
 
 //Lipnica
-const char* ssid = "TP-LINK_A23BA4";
-const char* password = "tamalasobca";
+//const char* ssid = "TP-LINK_A23BA4";
+//const char* password = "tamalasobca";
 
 ESP8266WebServer server(80);
 
@@ -56,6 +56,7 @@ void setup()
     server.on("/g", handleGraph);
     server.on("/data", handleData);
     server.on("/reset",handleManualReset);
+    server.on("/main",handleMain);
     server.on("/inline", []() {
         server.send(200, "text/plain", "this works as well");
     });
@@ -263,6 +264,7 @@ bool checkIfCorrectData()
         while (Serial.available() > 0) 
             Serial.read();
         fillST(CONF_CONNECT, CONNECT, CONNECT, arrLisaKeyRX);
+        ESP.restart();
         return false;
     }
 }
@@ -412,7 +414,7 @@ void loop()
     debug_println(ST.state);
     switch(ST.state) {
         case CONNECT:
-            debug_println("V1.2");
+            debug_println("V1.3");
             debug_println("We are in CONNECT");
            // serialFlash();
             connect_first_breakSign();
@@ -476,7 +478,7 @@ void handleData() {
     digitalWrite(led, 0);
 }
 
-void handleRoot() {
+void handleMain() {
     //next from curr checkARR
     debug_println("if!");
     if ( doneReadAll == false) {
@@ -491,6 +493,7 @@ void handleRoot() {
         snprintf(temp, 2500, 
         "<html>\
         <head>\
+        <meta http-equiv='refresh' content='5'/>\
         <style>\
         table, th, td {\
         \
@@ -569,6 +572,95 @@ void handleRoot() {
         digitalWrite(led, 0);
         doneReadAll = false;
     }
+}
+
+void handleRoot() {
+    fillST(WEB_REQ, WEB_REQ, WEB_REQ, arrLisaKeyRX);
+    digitalWrite(led, 1);
+    char temp[3000];
+
+    debug_println("print website !");
+    snprintf(temp, 2500, 
+    "<html>\
+    <head>\
+    <meta http-equiv='refresh' content='5'/>\
+    <style>\
+    table, th, td {\
+    \
+    border-collapse: collapse;\
+    }\
+    th, td {\
+    padding: 15px;\
+    text-align: center;\
+    }\
+    table#t01 {\
+    width: 100%;    \
+    background-color: #f1f1c1;\
+    }\
+    </style>\
+    </head>\
+    <body>\
+    \
+    <h1 align=\"center\" style=\"color:red;\">ALISA DATA</h1>\
+    <h3>Measurements: %d </h3>\
+    <h3 align=\"center\" style=\"color:blue;\">-----------  Measurements ----------</h3>\
+    <table style=\"width:100%\">\
+    <tr>\
+        <th style=\"color:blue;\">Left</th>\
+        <th></th> \
+        <th style=\"color:blue;\">Right</th>\
+    </tr>\
+    <tr>\
+        <td>U1: <font size=\"6\"><b>%d</b></font></td>\
+        <td>Upop: <font size=\"6\"><b>%d</b></font></td>\
+        <td>U2: <font size=\"6\"><b>%d</b></font></td>\
+    </tr>\
+    <tr>\
+        <td>ANG1: <font size=\"6\"><b>%d</b></font></td>\
+        <td>ANG_tot: <font size=\"6\"><b>%d</b></font></td>\
+        <td>ANG2: <font size=\"6\"><b>%d</b></font></td>\
+    </tr>\
+    <tr>\
+    </tr>\
+    </table>\
+    <br>\
+    <h3 align=\"center\" style=\"color:blue;\">-----------  Measurements amplified ----------</h3>\
+    <table id=\"t01\">\
+    <tr>\
+        <th style=\"color:blue;\">Left</th>\
+        <th></th> \
+        <th style=\"color:blue;\">Right</th>\
+    </tr>\
+    <tr>\
+        <td>U3: <font size=\"6\"><b>%d</b></font></td>\
+        <td></td>\
+        <td>U4: <font size=\"6\"><b>%d</b></font></td>\
+    </tr>\
+    <tr>\
+        <td>ANG3: <font size=\"6\"><b>%d</b></font></td>\
+        <td></td>\
+        <td>ANG4: <font size=\"6\"><b>%d</b></font></td>\
+    </tr>\
+    <tr>\
+    \
+    </tr>\
+    </table>\
+    <h3></h3>\
+    <h3 style=\"color:blue;\">----------- General Inforamtion ----------</h3>\
+    <h3>Battery Voltage: %d mV</h3>\
+    <h3>Temperature: %d C</h3>\
+    </body>\
+    </html>\
+        ",
+        lisa_index,
+        lisa_U1, lisa_Upov, lisa_U2, lisa_ANG1, lisa_ANG_tot1, lisa_ANG2,
+        lisa_U3, lisa_U4, lisa_ANG3, lisa_ANG4,
+        lisa_Vbat, lisa_temp
+    );
+
+    server.send(200, "text/html", temp);
+    digitalWrite(led, 0);
+    doneReadAll = false;
 }
 
 void handleManualReset(){

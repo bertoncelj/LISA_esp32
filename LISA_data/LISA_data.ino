@@ -321,7 +321,7 @@ void sendRead()
     if (nextRead == len_arr) {
         doneReadAll = true;
         nextRead = 0;
-        printAllLisa();
+        //printAllLisa();
 
         //next   from   curr checkARR
         handleRoot();
@@ -342,7 +342,7 @@ int hexToInt(int *arrSaveValue, int arr_len) {
     int i;
     int multiplayer[4] = {4096, 256,16, 1};
     int mult = 0;
-    debug_println("HexToInt");
+    //debug_println("HexToInt");
     for (i = 0; i < arr_len; i++){
         debug_println(arrSaveValue[i]);
     }
@@ -350,8 +350,8 @@ int hexToInt(int *arrSaveValue, int arr_len) {
     for(i = 0; i < arr_len; i++){
         rtnInt = arrSaveValue[i] * multiplayer[i] + rtnInt;
     }
-    debug_println("RTN INT");
-    debug_println(rtnInt);
+    //debug_println("RTN INT");
+    //debug_println(rtnInt);
     return rtnInt;
 }
 
@@ -366,13 +366,13 @@ boolean saveRX() {
 
     r = ST.receivedChars;
 
-    debug_println("RX SAVED: ");
+    //debug_println("RX SAVED: ");
     for (idx = 0; idx < len_r; idx ++){
         if (r[idx] == 0x29) inSaveModeBetweenParam = false;
         if (inSaveModeBetweenParam == true) {
-            debug_print("SaveInSaveVAl ");
-            debug_print(r[idx]);
-            debug_println("");
+            //debug_print("SaveInSaveVAl ");
+            //debug_print(r[idx]);
+            //debug_println("");
             r[idx] -= 0x30;
             if(r[idx] > 10) r[idx] -= 0x07;
             arrsaveValue[idx_saveValue] += r[idx];
@@ -380,10 +380,10 @@ boolean saveRX() {
         }
         if (r[idx] == 0x28) inSaveModeBetweenParam = true;  
         
-        debug_print(r[idx]);
-        debug_print(", ");
+        //debug_print(r[idx]);
+        //debug_print(", ");
     }
-    debug_println();
+    //debug_println();
     int rtn_int = hexToInt(&arrsaveValue[0], idx_saveValue);
 
     //restet global arr to all vals to 0
@@ -401,7 +401,7 @@ boolean saveRX() {
 void sendGraphRequest()
 {
     //send sign
-    debug_array(r_arr_graph, sizeof(r_arr_graph));
+    //debug_array(r_arr_graph, sizeof(r_arr_graph));
     Serial.write(r_arr_graph, sizeof(r_arr_graph)); 
     
     fillST(WEB_REQ, CONF_CONNECT,  WAIT_RX_ARR, arrPZeroRX);
@@ -414,7 +414,7 @@ void loop()
     debug_println(ST.state);
     switch(ST.state) {
         case CONNECT:
-            debug_println("V1.3");
+            debug_println("V1.4");
             debug_println("We are in CONNECT");
            // serialFlash();
             connect_first_breakSign();
@@ -469,10 +469,12 @@ void handleData() {
 
 
     snprintf(temp, 400,
-           " %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
-    lisa_index, lisa_U1, lisa_U2, lisa_Upov, lisa_ANG, lisa_ANG1,
-    lisa_U3,lisa_U4, lisa_ANG2, lisa_ANG3,
-    lisa_Vbat, lisa_temp
+           " %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
+            
+            lisa_index,
+            lisa_U1, lisa_Upov, lisa_U2, lisa_ANG1, lisa_ANG_tot1, lisa_ANG2,
+            lisa_U3, lisa_U4, lisa_ANG3, lisa_ANG4,
+            lisa_Vbat, lisa_temp
     );
     server.send(200, "text/html", temp);
     digitalWrite(led, 0);
@@ -493,7 +495,7 @@ void handleMain() {
         snprintf(temp, 2500, 
         "<html>\
         <head>\
-        <meta http-equiv='refresh' content='5'/>\
+        <meta http-equiv='refresh' content='8'/>\
         <style>\
         table, th, td {\
         \
@@ -583,7 +585,7 @@ void handleRoot() {
     snprintf(temp, 2500, 
     "<html>\
     <head>\
-    <meta http-equiv='refresh' content='5'/>\
+    <meta http-equiv='refresh' content='8'/>\
     <style>\
     table, th, td {\
     \

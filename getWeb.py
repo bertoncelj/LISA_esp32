@@ -38,7 +38,7 @@ script, file_path, meritev = argv
 
 
 
-contents = urllib.request.urlopen("http://192.168.1.50/data").read()
+contents = urllib.request.urlopen("http://192.168.1.51/data").read()
 
 #contents = "0, 1, 2, 0, 4, 0, 33506"
 str1 = meritevFunc(meritev)

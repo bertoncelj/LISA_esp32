@@ -161,6 +161,9 @@ typedef struct connection {
     int check_message_len;
     boolean check_checkRecvMessage;
 
+    //save arr
+    int save_message;
+
 } MSG;
 
 
@@ -198,6 +201,19 @@ MSG m_nullPent = {
                 .check_checkRecvMessage = true
                 };
 
+MSG m_lisaReg = {
+                .send_message = send_nullpetena,
+                .send_message_len = 16, //all have fix len of 16
+                .get_message = get_fixSize_msg, //save fix arr
+                .get_message_len = 0,
+                .get_endMark = 0x00,
+                .get_t_endMark_f_len = false,
+                .get_allDataRecv = false,
+                .check_message = rec_pZero,
+                .check_message_len = 8,
+                .check_checkRecvMessage = false
+
+};
 /*
 STC_LIST arrLisaKeyRX = {
                         .stcArr = rec_LISA_key,

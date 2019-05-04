@@ -27,6 +27,11 @@ void setup()
     debug_println("V1.5");
     debug_println("BREAKSIGN CONNECT");
     updateST(CONNECT, EMPTY, EMPTY); 
+    debug_println("vals:");
+    debug_println(sizeof(r_arr_index));
+    debug_println(sizeof(r_arr_Temp));
+    debug_println(sizeof(r_arr_U1));
+    debug_println(sizeof(r_arr_Upov));
 }
 
 void loop()
@@ -68,7 +73,10 @@ void loop()
         break;
 
         case WEB_REQ:
+
             debug_println("WIN!");
+            sendReg(r_arr_index);
+
         break;
 /*
         case GET_GRAPH:
@@ -99,6 +107,19 @@ void send(MSG *newLIST)
 
     //tmpSaveStc.saveSTC = &newLIST;
     tmpStc = newLIST;
+    ST.next = WAIT_RX;
+}
+
+void sendReg(byte *newArr) {
+    
+    m_lisaReg.send_message = newArr;
+    //m_lisaReg.check_message = 0x30;
+    
+
+    tmpStc = &m_lisaReg;
+    debug_println("Send request");
+    debug_array(tmpStc->send_message, tmpStc->send_message_len);
+    Serial.write(tmpStc->send_message, tmpStc->send_message_len);
     ST.next = WAIT_RX;
 }
 
@@ -211,21 +232,37 @@ void connect_second_nullPetEna()
 }
 
 void recWithFixLenght() { 
-    int set_fix_len = 8;
     int count_RX_data = 0;
     byte rc;
+    int index_count_len = 0;
 
-    while(set_fix_len < 8) {
+
+    while(index_count_len < m_lisaReg.check_message_len) {
+        debug_print("indx: ");
+        debug_print(index_count_len);
+        debug_print(" of ");
+        debug_println(m_lisaReg.check_message_len);
+        
         while (Serial.available() > 0) {
             rc = Serial.read();
 
             debug_hex(rc);
             debug_print("_");
-            debug_print(count_RX_data);
+            debug_print(index_count_len);
             debug_print(" ");
+            
+            //save into index
+            m_lisaReg.get_message[index_count_len] = rc;
+
+            //incremnet save index
+            index_count_len ++;
         }
     }
+    tmpStc->get_message_len = index_count_len;
+    tmpStc->get_allDataRecv = true;
+    ST.next = SAVE_RX;
 }
+
 void recvWithendMarker() 
 {
     static byte ndx = 0;
@@ -275,20 +312,30 @@ bool checkIfCorrectData()
     int len_t = tmpStc->check_message_len; //fix lenght
     int len_r = tmpStc->get_message_len;  //recive len
     int idx;
+    int incIndx = 0; 
 
     t = tmpStc->check_message;
     r = tmpStc->get_message;
     debug_println(len_t);
     debug_println(len_r);
 
-    if (len_t == len_r) {
+    //for error lenght 11 insted of 10
+    // we will skip first one by incrementing array by one
+
+    if (len_t + 1 == len_r) {
+        debug_println("adding one") ;
+        incIndx = 1;
+        delay(5000);
+        } 
+
+    if (len_t + incIndx == len_r) {
         debug_println("Arrays are equal len");
         for (idx = 0; idx < len_t; idx ++){
             debug_hex(t[idx]);
             debug_print("=");
             debug_hex(r[idx]);
             debug_print(", ");
-            if(t[idx] != r[idx]) return false;
+            if(t[idx + incIndx] != r[idx]) return false;
         }
         //correct OK
         debug_println("Array CORRECT");
@@ -301,6 +348,11 @@ bool checkIfCorrectData()
         return false;
     }
     else {
+        if(len_t + 1 == len_r){
+            debug_println("one bigger in connect");
+
+
+        }
         debug_println("ERROR: arrays are diff len");
         //server.send(200, "text/plain", "RESET");
         delay(5000);
@@ -343,6 +395,8 @@ boolean saveRX() {
     }
     //debug_println();
     int convertedToInt = hexToInt(&arrsaveValue[0], idx_saveValue);
+    debug_print("HEX to int: ");
+    debug_println(convertedToInt);
 
     //restet global arr to all vals to 0
     for (idx = 0; idx < idx_saveValue; idx ++){
@@ -350,9 +404,18 @@ boolean saveRX() {
     }
     idx_saveValue = 0; //reset to 0 cuz is static
 
-    *export_int = convertedToInt;
+    //all data gone
+    tmpStc->get_allDataRecv = false;
+
+    m_lisaReg.save_message = convertedToInt;
     //ST.state = ST.next;
     //ST.newData = false;
+    debug_print("GOT VALUE: ");
+    debug_println(m_lisaReg.save_message);
+    debug_println("");
+    debug_println("");
+
+    ST.next = WEB_REQ;
     return true;
 }
 

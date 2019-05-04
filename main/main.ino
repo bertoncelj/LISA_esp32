@@ -7,22 +7,15 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 
-const char* ssid = "TP-LINK";
-const char* password = "poljchSpodnjiGeslo";
-
-//Lipnica
-//const char* ssid = "TP-LINK_A23BA4";
-//const char* password = "tamalasobca";
-
-ESP8266WebServer server(80);
-
-/* Set these to your desired credentials. */
 
 bool doneReadAll = false;
-
 const int led = 13;
 
-STATES ST;
+stMachine ST;
+//TEMP_SAVE_STC tmpSaveStc;
+//tmpSTC *tmpStc; 
+MSG *tmpStc;
+
 //=======================================================================
 
 void setup() 
@@ -31,68 +24,176 @@ void setup()
     Serial.begin(19200, SERIAL_8N2);  //morta bit 2 stop bita
     DEBUG_UART.begin(19200, SERIAL_8N2);
     while (!Serial);
-
-    ////WIFI///////
-
-    /* You can remove the password parameter if you want the AP to be open. */
-    WiFi.begin(ssid, password);
-
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        debug_println("."); 
-    }
-
-
-    debug_print("Connect to "); 
-    debug_println(ssid); 
-    debug_print("IP add: "); 
-    debug_print(WiFi.localIP()); 
-
-    if (MDNS.begin("esp8266")) {
-        debug_println("MDNS responder started");
-    }
-
-    server.on("/", handleRoot);
-    server.on("/g", handleGraph);
-    server.on("/data", handleData);
-    server.on("/reset",handleManualReset);
-    server.on("/main",handleMain);
-    server.on("/inline", []() {
-        server.send(200, "text/plain", "this works as well");
-    });
-    server.onNotFound(handleNotFound);
-
-    server.begin();
-    debug_println("HTTP server started"); 
-
-    //next from curr checkARR
-    //fillST(CONF_CONNECT, CONNECT, CONNECT, arrLisaKeyRX);
+    debug_println("V1.5");
+    debug_println("BREAKSIGN CONNECT");
+    updateST(CONNECT, EMPTY, EMPTY); 
 }
 
-void connect_first_breakSign() 
+void loop()
 {
-    int rtn_len;
-    boolean rtn_func;
-    //delay(3000);
-    //send break
-    breakLISA();
+    //STATE MACHINE
+    debug_print("curState:"); 
+    debug_println(ST.next); 
+    switch(ST.next) {
+        case CONNECT:
+            debug_println("We in CONNECT");
+            connect_breakSign();
+        break;
 
+        case BREAK:
+            debug_println("We in BREAK");
+            breakLISA();
+        break;
+
+        case SIGN:
+            debug_println("We in SIGN");
+            signLISA();
+        break;
+
+        case WAIT_RX:
+            waitRX();
+        break;
+
+        case FULL_CHECK_RX:
+            checkIfCorrectData();
+        break;
+
+        case SAVE_RX:
+            saveRX();
+        break;
+
+        case NULLPENT:
+           send(&m_nullPent);
+           ST.future = WEB_REQ;
+        break;
+
+        case WEB_REQ:
+            debug_println("WIN!");
+        break;
+/*
+        case GET_GRAPH:
+            sendGraphRequest();
+        break;
+
+        case WAIT_RX_ARR:
+            waitRXArr();
+        break;
+
+        case READ:
+            debug_println("We are is ST.state READ");
+            sendRead();
+        break;
+
+*/
+        default:
+            debug_println("default ST.state"); 
+        }
+}
+
+void send(MSG *newLIST)
+{
+    debug_println("send message");
+    debug_println(newLIST->check_message_len);
+    debug_array(newLIST->send_message, newLIST->send_message_len);
+    Serial.write(newLIST->send_message, newLIST->send_message_len);
+
+    //tmpSaveStc.saveSTC = &newLIST;
+    tmpStc = newLIST;
+    ST.next = WAIT_RX;
+}
+
+void waitRX() 
+{
+    debug_println("IN RX"); 
+    delay(200);
+    //two types of recive with endMark or fixLenght
+    debug_print("get_t_endMark_f_len: "); 
+    debug_println(tmpStc->get_t_endMark_f_len); 
+    if(tmpStc->get_t_endMark_f_len == true) {
+        //endMark
+        recvWithendMarker();
+    }else {
+        //fixLen
+        recWithFixLenght();
+    }
+
+    //////////
+    static int count_missRX = 0;
+    delay(200); //wait a bit for buffer to fill
+    debug_println("choose if statment");
+    if(tmpStc->get_allDataRecv == true && tmpStc->check_checkRecvMessage == true) {
+        ST.next = FULL_CHECK_RX;
+    } else if(tmpStc->get_allDataRecv == true && tmpStc->check_checkRecvMessage == false ) {
+        //for just read RX, don't check RX arr
+        ST.next = SAVE_RX;
+    } else if(tmpStc->get_allDataRecv == false && tmpStc->check_checkRecvMessage == false ) {
+        //TODO: Miss Error Handler
+        count_missRX ++;
+        debug_print("miss: ");
+        debug_println(count_missRX);
+    } else {
+        debug_println("ERROR STATE!!!");
+        debug_println("Connecet again");
+        error_state();
+    }
+}
+
+void connect_breakSign() 
+{
+    //breakLISA();
     //send sign
-    debug_array(send_sign, sizeof(send_sign));
-    Serial.write(send_sign, sizeof(send_sign)); 
+    //debug_array(send_sign, sizeof(send_sign));
+    //Serial.write(send_sign, sizeof(send_sign)); 
 
-    delay(3000);
-
-    //next from curr checkARR
-    fillST(CONF_CONNECT, CONNECT, WAIT_RX, arrLisaKeyRX);
+    //flush serial bufffer
+    while (Serial.available() > 0) 
+        Serial.read();
+    updateST(BREAK, SIGN, CONNECT);
 }
 
-void fillST(enumSTAT nextState, enumSTAT fromState, enumSTAT currState, STC_LIST checkArr) 
+void breakLISA() 
 {
-    ST.state = currState;
-    ST.from = fromState;
+    delay(100);
+    debug_println("BREAK_LISA");
+    debug_array(send_break, sizeof(send_break));
+    Serial.write(send_break, sizeof(send_break));
+    debug_println("");
+    delay(900); // MUST be 900 ms !!!!
+    if (ST.from == CONNECT) {
+        nextST();
+    } else {
+        //add new state to go from break
+        error_state();
+    }
+}
+
+void signLISA()
+{
+    send(&m_LisaKeyRX);
+    ST.future = NULLPENT;
+}
+
+void updateST(enumSTAT nextState, enumSTAT futureState, enumSTAT fromState) 
+{
     ST.next = nextState;
-    ST.recArr = checkArr;
+    ST.future = futureState;
+    ST.from = fromState;
+}
+
+void nextST() 
+{
+    if (ST.future != EMPTY) {
+        ST.next = ST.future;
+        ST.future = EMPTY;
+    } else {
+        error_state();
+    }
+}
+
+void error_state() 
+{
+    while(1)
+        debug_println("ERORR STATE");
 }
 
 void connect_second_nullPetEna() 
@@ -106,39 +207,7 @@ void connect_second_nullPetEna()
     //wait for return message lisa
 
     //next from curr checkARR
-    fillST(READ, CONF_CONNECT,  WEB_REQ, arrPZeroRX);
-}
-
-void recvWithendMarker() 
-{
-    static byte ndx = 0;
-    int rtn_len = 0;
-    byte rc;
-    
-    debug_println("Start to read:");
-    debug_println(ST.newData);
-    while (Serial.available() > 0 && ST.newData == false) {
-        rc = Serial.read();
-        debug_hex(rc);
-        debug_print(" ");
-
-        if (rc !=  ST.recArr.endMarker && ndx < ST.recArr.lenArr) {
-            ST.receivedChars[ndx] = rc;
-            ndx++;
-            if (ndx >= MAX_REC_ARR_LEN) {
-                ndx = MAX_REC_ARR_LEN - 1;
-                debug_println("array leak!!!");
-            }
-        }
-        else {
-            ST.receivedChars[ndx] = rc; // terminate the string
-            ST.LenRecArr = ndx + 1;
-            ndx = 0;
-            ST.newData = true;
-            debug_println("END");
-        }
-    }
-    debug_println("");
+    updateST(READ, CONF_CONNECT,  WEB_REQ);
 }
 
 void recWithFixLenght() { 
@@ -157,30 +226,156 @@ void recWithFixLenght() {
         }
     }
 }
-
-void waitRX() 
+void recvWithendMarker() 
 {
-    static int count_missRX = 0;
-    debug_println("waitRX()");
-    delay(200); //wait a bit for buffer to fill
-    recvWithendMarker();
-    if(ST.newData == true && ST.recArr.check == true) {
-        ST.state = FULL_CHECK_RX;
-    } else if(ST.newData == true && ST.recArr.check == false) {
-        //for just read RX, don't check RX arr
-        ST.state = SAVE_RX;
-    } else if(ST.newData == false && ST.recArr.check == false && count_missRX < 3) {
-        count_missRX ++;
-    } else {
-        debug_println("ERROR STATE!!!");
-        debug_println("Connecet again");
-        server.send(200, "text/plain", "RESET");
+    static byte ndx = 0;
+    int rtn_len = 0;
+    byte rc;
+    
+    debug_print("if allData: ");
+    debug_println(tmpStc->get_allDataRecv);
+    debug_println("Start to read:");
+    while (Serial.available() > 0 && tmpStc->get_allDataRecv == false) {
+        rc = Serial.read();
+        debug_hex(rc);
+        debug_print(" ");
+
+        debug_println("here");
+        if (rc !=  tmpStc->get_endMark && ndx < tmpStc->check_message_len) {
+            
+            debug_println("here if");
+            tmpStc->get_message[ndx] = rc;
+            debug_print("ndx: ");
+            debug_println(ndx);
+            ndx++;
+            //leak detect over 128
+            if (ndx >= MAX_REC_ARR_LEN) {
+                ndx = MAX_REC_ARR_LEN - 1;
+                debug_println("array leak!!!");
+            }
+        }
+        else {
+            tmpStc->get_message[ndx] = rc;  // terminate the string  
+            tmpStc->get_message_len = ndx + 1;
+            ndx = 0;
+            tmpStc->get_allDataRecv = true;
+            debug_println("END");
+        }
+    }
+    debug_println("");
+    debug_println("here end");
+}
+
+bool checkIfCorrectData() 
+{
+    debug_println("In check");
+    //check lenght of arrays
+    byte *t;
+    byte *r;
+    int len_t = tmpStc->check_message_len; //fix lenght
+    int len_r = tmpStc->get_message_len;  //recive len
+    int idx;
+
+    t = tmpStc->check_message;
+    r = tmpStc->get_message;
+    debug_println(len_t);
+    debug_println(len_r);
+
+    if (len_t == len_r) {
+        debug_println("Arrays are equal len");
+        for (idx = 0; idx < len_t; idx ++){
+            debug_hex(t[idx]);
+            debug_print("=");
+            debug_hex(r[idx]);
+            debug_print(", ");
+            if(t[idx] != r[idx]) return false;
+        }
+        //correct OK
+        debug_println("Array CORRECT");
+        ST.next = ST.future;
+        tmpStc->get_allDataRecv = false;
+        return true;
+    }
+    else if (len_t == 0 ) {
+        debug_println("Test array Is empty");
+        return false;
+    }
+    else {
+        debug_println("ERROR: arrays are diff len");
+        //server.send(200, "text/plain", "RESET");
         delay(5000);
         //next from curr checkARR
-        fillST(CONF_CONNECT, CONNECT, CONNECT, arrLisaKeyRX);
+        //flush serial bufffer
+        while (Serial.available() > 0) 
+            Serial.read();
+        error_state();
+        return false;
     }
 }
 
+boolean saveRX() {
+    byte *r;
+    int len_r = tmpStc->get_message_len;
+    int idx;
+    bool inSaveModeBetweenParam = false;
+
+    static int idx_saveValue = 0;
+    static int arrsaveValue[10]; //care 10 max
+
+    r = tmpStc->get_message;
+
+    //debug_println("RX SAVED: ");
+    for (idx = 0; idx < len_r; idx ++){
+        if (r[idx] == 0x29) inSaveModeBetweenParam = false;
+        if (inSaveModeBetweenParam == true) {
+            //debug_print("SaveInSaveVAl ");
+            //debug_print(r[idx]);
+            //debug_println("");
+            r[idx] -= 0x30;
+            if(r[idx] > 10) r[idx] -= 0x07;
+            arrsaveValue[idx_saveValue] += r[idx];
+            idx_saveValue ++;
+        }
+        if (r[idx] == 0x28) inSaveModeBetweenParam = true;  
+        
+        //debug_print(r[idx]);
+        //debug_print(", ");
+    }
+    //debug_println();
+    int convertedToInt = hexToInt(&arrsaveValue[0], idx_saveValue);
+
+    //restet global arr to all vals to 0
+    for (idx = 0; idx < idx_saveValue; idx ++){
+        arrsaveValue[idx] = 0;
+    }
+    idx_saveValue = 0; //reset to 0 cuz is static
+
+    *export_int = convertedToInt;
+    //ST.state = ST.next;
+    //ST.newData = false;
+    return true;
+}
+
+int hexToInt(int *arrSaveValue, int arr_len) {
+    int rtnInt = 0; 
+    int i;
+    int multiplayer[4] = {4096, 256,16, 1};
+    int mult = 0;
+
+    //debug_println("HexToInt");
+    for (i = 0; i < arr_len; i++){
+        debug_println(arrSaveValue[i]);
+    }
+    debug_println("");
+    for(i = 0; i < arr_len; i++){
+        rtnInt = arrSaveValue[i] * multiplayer[i] + rtnInt;
+    }
+    //debug_println("RTN INT");
+    //debug_println(rtnInt);
+    return rtnInt;
+}
+
+/*
 //for graph
 void waitRXArr ()
 {
@@ -224,14 +419,6 @@ void checkRX()
     checkIfCorrectData();
 }
 
-void breakLISA() 
-{
-    delay(100);
-    debug_println("BREAK_LISA");
-    debug_array(send_break, sizeof(send_break));
-    Serial.write(send_break, sizeof(send_break));
-    delay(900); // MUST be 900 ms !!!!
-}
 
 void serialFlash() 
 {
@@ -240,52 +427,6 @@ void serialFlash()
     }
 }
 
-bool checkIfCorrectData() 
-{
-    debug_println("In check");
-    //check lenght of arrays
-    byte *t;
-    byte *r;
-    int len_t = ST.recArr.lenArr;
-    int len_r = ST.LenRecArr;
-    int idx;
-
-    t =  ST.recArr.stcArr;
-    r = ST.receivedChars;
-    debug_println(len_t);
-    debug_println(len_r);
-
-    if (len_t == len_r) {
-        debug_println("Arrays are equal len");
-        for (idx = 0; idx < len_t; idx ++){
-            debug_hex(t[idx]);
-            debug_print("=");
-            debug_hex(r[idx]);
-            debug_print(", ");
-            if(t[idx] != r[idx]) return false;
-        }
-        debug_println("Array CORRECT");
-        ST.state = ST.next;
-        ST.newData = false;
-        return true;
-    }
-    else if (len_t == 0 ) {
-        debug_println("Test array Is empty");
-        return false;
-    }
-    else {
-        debug_println("ERROR: arrays are diff len");
-        server.send(200, "text/plain", "RESET");
-        delay(5000);
-        //next from curr checkARR
-        //flush serial bufffer
-        while (Serial.available() > 0) 
-            Serial.read();
-        fillST(CONF_CONNECT, CONNECT, CONNECT, arrLisaKeyRX);
-        ESP.restart();
-        return false;
-    }
-}
 
 void showNewData() 
 {
@@ -355,66 +496,7 @@ void sendRead()
     fillST(READ, READ, WAIT_RX, arrREADS[0]);
 }
 
-int hexToInt(int *arrSaveValue, int arr_len) {
-    int rtnInt = 0; 
-    int i;
-    int multiplayer[4] = {4096, 256,16, 1};
-    int mult = 0;
-    //debug_println("HexToInt");
-    for (i = 0; i < arr_len; i++){
-        debug_println(arrSaveValue[i]);
-    }
-    debug_println("");
-    for(i = 0; i < arr_len; i++){
-        rtnInt = arrSaveValue[i] * multiplayer[i] + rtnInt;
-    }
-    //debug_println("RTN INT");
-    //debug_println(rtnInt);
-    return rtnInt;
-}
 
-boolean saveRX() {
-    byte *r;
-    int len_r = ST.LenRecArr;
-    int idx;
-    bool inSaveModeBetweenParam = false;
-
-    static int idx_saveValue = 0;
-    static int arrsaveValue[10];
-
-    r = ST.receivedChars;
-
-    //debug_println("RX SAVED: ");
-    for (idx = 0; idx < len_r; idx ++){
-        if (r[idx] == 0x29) inSaveModeBetweenParam = false;
-        if (inSaveModeBetweenParam == true) {
-            //debug_print("SaveInSaveVAl ");
-            //debug_print(r[idx]);
-            //debug_println("");
-            r[idx] -= 0x30;
-            if(r[idx] > 10) r[idx] -= 0x07;
-            arrsaveValue[idx_saveValue] += r[idx];
-            idx_saveValue ++;
-        }
-        if (r[idx] == 0x28) inSaveModeBetweenParam = true;  
-        
-        //debug_print(r[idx]);
-        //debug_print(", ");
-    }
-    //debug_println();
-    int rtn_int = hexToInt(&arrsaveValue[0], idx_saveValue);
-
-    //restet global arr to all vals to 0
-    for (idx = 0; idx < idx_saveValue; idx ++){
-        arrsaveValue[idx] = 0;
-    }
-    idx_saveValue = 0; //reset to 0 cuz is static
-
-    *export_int = rtn_int;
-    ST.state = ST.next;
-    ST.newData = false;
-    return true;
-}
 
 void sendGraphRequest()
 {
@@ -423,59 +505,6 @@ void sendGraphRequest()
     Serial.write(r_arr_graph, sizeof(r_arr_graph)); 
     
     fillST(WEB_REQ, CONF_CONNECT,  WAIT_RX_ARR, arrPZeroRX);
-}
-
-void loop()
-{
-    //STATE MACHINE
-    debug_print("curState:"); 
-    debug_println(ST.state);
-    switch(ST.state) {
-        case CONNECT:
-            debug_println("V1.4");
-            debug_println("We are in CONNECT");
-           // serialFlash();
-            connect_first_breakSign();
-        break;
-
-        case CONF_CONNECT:
-            delay(3000);
-            debug_println("We are in CONF_CONNECT");
-            connect_second_nullPetEna();
-        break;
-
-        case FULL_CHECK_RX:
-            checkRX();
-        break;
-
-        case SAVE_RX:
-            saveRX();
-        break;
-
-        case GET_GRAPH:
-            sendGraphRequest();
-        break;
-
-        case WAIT_RX:
-            waitRX();
-        break;
-
-        case WAIT_RX_ARR:
-            waitRXArr();
-        break;
-
-        case READ:
-            debug_println("We are is ST.state READ");
-            sendRead();
-        break;
-
-        case WEB_REQ:
-            server.handleClient();
-        break;
-
-        default:
-            debug_println("default ST.state"); 
-        }
 }
 
 /////////////////////////WIFI////////////////////////////////
@@ -718,3 +747,4 @@ void handleNotFound(){
   server.send(404, "text/plain", message);
   digitalWrite(led, 0);
 }
+*/

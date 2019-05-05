@@ -27,18 +27,13 @@ void setup()
     debug_println("V1.5");
     debug_println("BREAKSIGN CONNECT");
     updateST(CONNECT, EMPTY, EMPTY); 
-    debug_println("vals:");
-    debug_println(sizeof(r_arr_index));
-    debug_println(sizeof(r_arr_Temp));
-    debug_println(sizeof(r_arr_U1));
-    debug_println(sizeof(r_arr_Upov));
 }
 
 void loop()
 {
     //STATE MACHINE
-    debug_print("curState:"); 
-    debug_println(ST.next); 
+    //debug_print("curState:"); 
+    //debug_println(ST.next); 
     switch(ST.next) {
         case CONNECT:
             debug_println("We in CONNECT");
@@ -67,16 +62,59 @@ void loop()
             saveRX();
         break;
 
+        case SAVE_IN_ARR:
+            saveInArr();
+        break;
+
         case NULLPENT:
            send(&m_nullPent);
            ST.future = WEB_REQ;
         break;
 
         case WEB_REQ:
+            static boolean readAllReg = false;
+            static int saveMeasVal = 0;
+            static int indx = 0; 
+            static boolean sendReqForIndx = false;
 
-            debug_println("WIN!");
-            sendReg(r_arr_index);
+            if (readAllReg == false ) {
+                tmpStc->save_inArr = false;
+                //debug_print("indx: ");
+                //debug_print(saveMeasVal);
+                //debug_print(" <-> ");
+                //debug_println(tmpStc->save_message);
+                sendReg(r_arr_index);
+                sendReqForIndx = true;
+            }
+            
+            if(tmpStc->save_message == saveMeasVal) delay(500);
+            if (tmpStc->save_message != saveMeasVal && readAllReg == false)  {
+                readAllReg = true;
+                saveMeasVal = tmpStc->save_message;
+                return;
 
+            }
+
+            if (readAllReg == true) {
+                //debug_println("Read Register");
+                tmpStc->save_inArr = true;
+                sendReg(r_arr_names[indx]);
+                if ( indx != 0) {
+                    //if (indx == 1) debug_println("-----------");
+                    //debug_println("/////////////");
+                    //debug_print(indx - 1);
+                    //debug_print(": ");
+                    //debug_println(tmpStc->save_message);
+                    //debug_println("/////////////");
+                }
+                indx ++;
+                
+
+                if (indx == NUM_ARR_INT) {
+                    indx = 0;
+                    readAllReg = false;
+                }
+            }
         break;
 /*
         case GET_GRAPH:
@@ -117,19 +155,58 @@ void sendReg(byte *newArr) {
     
 
     tmpStc = &m_lisaReg;
-    debug_println("Send request");
-    debug_array(tmpStc->send_message, tmpStc->send_message_len);
+    //debug_println("Send request");
+    //debug_array(tmpStc->send_message, tmpStc->send_message_len);
     Serial.write(tmpStc->send_message, tmpStc->send_message_len);
     ST.next = WAIT_RX;
 }
 
+void saveInArr()
+{
+    static int indxSave = 0;
+    static int numArrInt = 0; 
+
+    //debug_print("SaveInArr: ");
+    //debug_print(numArrInt);
+    //debug_print(" ");
+    //debug_println(indxSave);
+
+    saveAllArr[numArrInt][indxSave] = tmpStc->save_message;
+    indxSave ++;
+    if (indxSave == NUM_ARR_INT) {
+        indxSave = 0;
+        numArrInt ++;
+    }
+    if(numArrInt == REG_MAX_LEN) {
+        //debug_println("--------------------------");
+        numArrInt = 0;
+        printAllReg();
+    }
+    ST.next = WEB_REQ;
+}
+
+void printAllReg()
+{
+    debug_println(".................");
+
+    int i,j;
+    for(i = 0; i < REG_MAX_LEN; i++) {
+        for(j = 0; j < NUM_ARR_INT; j++) {
+            debug_print(saveAllArr[i][j]);
+            debug_print(", ");
+        }
+        debug_println("");
+    }
+    debug_println(".................");
+}
+
 void waitRX() 
 {
-    debug_println("IN RX"); 
-    delay(200);
+    //debug_println("IN RX"); 
+    //delay(200);
     //two types of recive with endMark or fixLenght
-    debug_print("get_t_endMark_f_len: "); 
-    debug_println(tmpStc->get_t_endMark_f_len); 
+    //debug_print("get_t_endMark_f_len: "); 
+    //debug_println(tmpStc->get_t_endMark_f_len); 
     if(tmpStc->get_t_endMark_f_len == true) {
         //endMark
         recvWithendMarker();
@@ -140,14 +217,14 @@ void waitRX()
 
     //////////
     static int count_missRX = 0;
-    delay(200); //wait a bit for buffer to fill
-    debug_println("choose if statment");
+    //delay(200); //wait a bit for buffer to fill
+    //debug_println("choose if statment");
     if(tmpStc->get_allDataRecv == true && tmpStc->check_checkRecvMessage == true) {
         ST.next = FULL_CHECK_RX;
     } else if(tmpStc->get_allDataRecv == true && tmpStc->check_checkRecvMessage == false ) {
         //for just read RX, don't check RX arr
         ST.next = SAVE_RX;
-    } else if(tmpStc->get_allDataRecv == false && tmpStc->check_checkRecvMessage == false ) {
+    } else if(tmpStc->get_allDataRecv == false && tmpStc->check_checkRecvMessage == true ) {
         //TODO: Miss Error Handler
         count_missRX ++;
         debug_print("miss: ");
@@ -235,32 +312,33 @@ void recWithFixLenght() {
     int count_RX_data = 0;
     byte rc;
     int index_count_len = 0;
+    int stop_count = 0;
+    //debug_println("in recWithFixLen");
+    while(index_count_len < m_lisaReg.check_message_len + 1) {
+        if (stop_count == 200000){
+            debug_println("error wait time");
+            Serial.write(tmpStc->send_message, tmpStc->send_message_len);
+            index_count_len = 0;
+            stop_count = 0;
 
-
-    while(index_count_len < m_lisaReg.check_message_len) {
-        debug_print("indx: ");
-        debug_print(index_count_len);
-        debug_print(" of ");
-        debug_println(m_lisaReg.check_message_len);
-        
+        }
         while (Serial.available() > 0) {
             rc = Serial.read();
-
-            debug_hex(rc);
-            debug_print("_");
-            debug_print(index_count_len);
-            debug_print(" ");
-            
+            //debug_hex(rc);
+            //debug_print("_");
+            //debug_print(index_count_len);
+            //debug_print(" ");
             //save into index
             m_lisaReg.get_message[index_count_len] = rc;
 
             //incremnet save index
             index_count_len ++;
         }
+        stop_count ++;
     }
     tmpStc->get_message_len = index_count_len;
     tmpStc->get_allDataRecv = true;
-    ST.next = SAVE_RX;
+    //debug_println(" ");
 }
 
 void recvWithendMarker() 
@@ -395,8 +473,8 @@ boolean saveRX() {
     }
     //debug_println();
     int convertedToInt = hexToInt(&arrsaveValue[0], idx_saveValue);
-    debug_print("HEX to int: ");
-    debug_println(convertedToInt);
+    //debug_print("HEX to int: ");
+    //debug_println(convertedToInt);
 
     //restet global arr to all vals to 0
     for (idx = 0; idx < idx_saveValue; idx ++){
@@ -410,12 +488,16 @@ boolean saveRX() {
     m_lisaReg.save_message = convertedToInt;
     //ST.state = ST.next;
     //ST.newData = false;
-    debug_print("GOT VALUE: ");
-    debug_println(m_lisaReg.save_message);
-    debug_println("");
-    debug_println("");
+    //debug_print("GOT VALUE: ");
+    //debug_println(m_lisaReg.save_message);
+    //debug_println("");
+    //debug_println("");
 
-    ST.next = WEB_REQ;
+    if(tmpStc->save_inArr == true){
+        ST.next = SAVE_IN_ARR;
+    } else {
+        ST.next = WEB_REQ;
+    }
     return true;
 }
 
@@ -427,9 +509,9 @@ int hexToInt(int *arrSaveValue, int arr_len) {
 
     //debug_println("HexToInt");
     for (i = 0; i < arr_len; i++){
-        debug_println(arrSaveValue[i]);
+        //debug_println(arrSaveValue[i]);
     }
-    debug_println("");
+    //debug_println("");
     for(i = 0; i < arr_len; i++){
         rtnInt = arrSaveValue[i] * multiplayer[i] + rtnInt;
     }

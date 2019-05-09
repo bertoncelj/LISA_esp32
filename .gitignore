@@ -11,6 +11,8 @@ __pycache__/
 *.swp
 *.swo
 *.swn
+*.swm
+*.swl
 
 #my untracked directory
 tmp/

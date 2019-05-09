@@ -20,15 +20,21 @@
 #endif
 
 #define MAX_REC_ARR_LEN 128
+
+//SAVE REGISTERS
 #define NUM_ARR_INT 14
-#define REG_MAX_LEN 3
+#define REG_MAX_LEN 20
+
+//SET GRAPH 
+#define MAX_GRAPH_ARR 1
+#define SAVE_GRAPH_POINTS 536
 
 // teperature
 //
 // graphCall
 byte r_arr_graph[] = {0x01, 0x4F, 0x02, 0x28, 0x29, 0x03, 0x4F};
 byte get_fixSize_msg[15];
-byte get_arr_graph[600];
+byte get_arr_graph[MAX_GRAPH_ARR][SAVE_GRAPH_POINTS];
 
 //
 //index which increase every measures
@@ -91,20 +97,11 @@ byte rec_pZero[] = {0x01, 0x50, 0x30, 0x02, 0x28, 0x00, 0x29, 0x03, 0x60};
 
 byte *r_arr_names[] = {r_arr_Temp, r_arr_Vbat, r_arr_U1, r_arr_U2, r_arr_Upov, r_arr_ANG, r_arr_ANG1, r_arr_ANG2, r_arr_U3, r_arr_U4, r_arr_ANG_tot1, r_arr_ANG3, r_arr_ANG4, r_arr_index};
 
+//save all registers into 2D array
 int saveAllArr[REG_MAX_LEN][NUM_ARR_INT];
+
 int *export_int;
 int SaveTemp;
-
-//STATES
-/*
-typedef struct stc_connection {
-    byte *stcArr;
-    int lenArr;
-    byte endMarker;
-    boolean check;
-    int saveValue;
-} connList;
-*/
 
 typedef enum e_state_machine {
     CONNECT,
@@ -204,28 +201,5 @@ MSG m_lisaReg = {
                 .save_inArr = false
 
 };
-/*
-STC_LIST arrLisaKeyRX = {
-                        .stcArr = rec_LISA_key,
-                        .lenArr = 10,
-                        .endMarker = 0x0A,
-                        .check = true
-                        };
-
-STC_LIST arrPZeroRX = { 
-                        .stcArr = rec_pZero,
-                        .lenArr = 9,
-                        .endMarker = 0x60,
-                        .check = true
-                    };
-
-STC_LIST ReadTemp = {  
-                        .stcArr = send_read_temp2,
-                        .lenArr = 8,
-                        .endMarker = 0xFF,
-                        .check = false,
-                    };
-
-*/
 
 #endif //param.h

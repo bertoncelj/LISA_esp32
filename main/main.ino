@@ -4,13 +4,17 @@
 //WIFI
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
-#include <ESP8266WiFiMulti.h>
+
+/*
 const char* ssid = "AndroidAP";
 const char* password = "urur2377";
-
-const char* host = "92.37.97.225";
-const int  port = 56721;
 #define ROUTE_ADDRESS "http://92.37.97.225:56721/"
+*/
+
+const char* ssid = "TP-LINK";
+const char* password = "poljchSpodnjiGeslo";
+#define ROUTE_ADDRESS "http://192.168.1.50:5000/"
+
 bool doneReadAll = false;
 const int led = 13;
 
@@ -23,7 +27,6 @@ MSG *tmpStc;
 //=======================================================================
 
 //WIFI setup
-ESP8266WiFiMulti wifiMulti;
 HTTPClient http;
 
 void setup() 
@@ -37,21 +40,12 @@ void setup()
     updateST(CONNECT, EMPTY, EMPTY); 
     
     //WIFI setup
-    wifiMulti.addAP(ssid, password);
-    /*
     WiFi.begin(ssid, password);   
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(1000);
-        Serial.println("Connecting..");
-    }
-    */
 }
 
 void loop()
 {
     //STATE MACHINE
-    //debug_print("curState:"); 
-    //debug_println(ST.next); 
     switch(ST.next) {
         case CONNECT:
             debug_println("We in CONNECT");
@@ -201,7 +195,6 @@ void saveInArr()
 
     //start to connect wifi 2 mesures before 10 second time window
     if(numArrInt == REG_MAX_LEN - 12) {
-        wifiMulti.run();
         WiFi.forceSleepWake();
         WiFi.mode(WIFI_STA);
         //wifi_station_connect();
@@ -668,7 +661,12 @@ void printGraph(int whichOne)
 
 
 void WifiSendGraph(){
-     if(wifiMulti.run() == WL_CONNECTED) {
+
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(1000);
+        debug_println("Connecting..");
+    }
+    if(WiFi.status() == WL_CONNECTED) {
         http.begin(ROUTE_ADDRESS);      //Specify request destination
         http.addHeader("Content-Type", "text/plain");  //Specify content-type header
        
@@ -694,7 +692,12 @@ void WifiSendGraph(){
 void WifiSend() {
   unsigned long currentMillis = millis();
 
-    if(wifiMulti.run() != WL_CONNECTED) {
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(1000);
+        debug_println("Connecting..");
+    }
+
+    if(WiFi.status() != WL_CONNECTED) {
         debug_println("Slow connect timeMust be redo data will be lost");
     } else {  
         debug_println("WiFi connected");

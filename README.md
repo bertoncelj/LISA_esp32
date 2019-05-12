@@ -8,6 +8,22 @@ LOG:
 SERIAL_DEBUG:
      gtkterm -p /dev/ttyUSB1 -s 19200
 
+### NABAVA
+
+    Letvice (lojtrce)
+
+### Server
+    Send packet on poljch.home.kg
+    5000 
+
+
+### SSH connect
+
+    ssh poljch.home.kg@anze -p 41856
+
+
+
+
 ## CONNECT PROTOCOL:
 BREAK
 01 42 30 03 71  " B0 q"

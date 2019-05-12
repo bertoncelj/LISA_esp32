@@ -23,10 +23,10 @@
 
 //SAVE REGISTERS
 #define NUM_ARR_INT 14
-#define REG_MAX_LEN 180
+#define REG_MAX_LEN 20
 
 //SET GRAPH 
-#define MAX_GRAPH_ARR 10
+#define MAX_GRAPH_ARR 1
 #define SAVE_GRAPH_POINTS 536
 
 // teperature

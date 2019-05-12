@@ -11,17 +11,20 @@ const char* password = "urur2377";
 #define ROUTE_ADDRESS "http://92.37.97.225:56721/"
 */
 
-const char* ssid = "TP-LINK";
-const char* password = "poljchSpodnjiGeslo";
-#define ROUTE_ADDRESS "http://192.168.1.50:5000/"
+//const char* ssid = "TP-LINK";
+//const char* password = "poljchSpodnjiGeslo";
+
+const char* ssid = "TP-LINK_A23BA4";
+const char* password = "tamalasobca";
+//#define ROUTE_ADDRESS "http://poljch.home.kg:41856/"
+#define ROUTE_ADDRESS "http://92.37.26.33:41856/"
 
 bool doneReadAll = false;
 const int led = 13;
 
 String stringEmptySpace;
 stMachine ST;
-//TEMP_SAVE_STC tmpSaveStc;
-//tmpSTC *tmpStc; 
+
 MSG *tmpStc;
 
 //=======================================================================
@@ -35,7 +38,7 @@ void setup()
     Serial.begin(19200, SERIAL_8N2);  //morta bit 2 stop bita
     DEBUG_UART.begin(19200, SERIAL_8N2);
     while (!Serial);
-    debug_println("V1.6001");
+    debug_println("V1.6003");
     debug_println("BREAKSIGN CONNECT");
     updateST(CONNECT, EMPTY, EMPTY); 
     
@@ -194,7 +197,7 @@ void saveInArr()
     }
 
     //start to connect wifi 2 mesures before 10 second time window
-    if(numArrInt == REG_MAX_LEN - 12) {
+    if(numArrInt == REG_MAX_LEN - 3) {
         WiFi.forceSleepWake();
         WiFi.mode(WIFI_STA);
         //wifi_station_connect();
@@ -369,6 +372,7 @@ void nextST()
 
 void error_state() 
 {
+    ESP.reset();
     while(1)
         debug_println("ERORR STATE");
 }
@@ -399,6 +403,7 @@ void recWithFixLenght() {
             Serial.write(tmpStc->send_message, tmpStc->send_message_len);
             index_count_len = 0;
             stop_count = 0;
+            error_state();
 
         }
         while (Serial.available() > 0) {
@@ -481,6 +486,7 @@ bool checkIfCorrectData()
 
     if (len_t + 1 == len_r) {
         debug_println("adding one") ;
+        ESP.reset();
         incIndx = 1;
         delay(5000);
         } 
@@ -511,7 +517,6 @@ bool checkIfCorrectData()
 
         debug_println("ERROR: arrays are diff len");
         //server.send(200, "text/plain", "RESET");
-        delay(5000);
         //next from curr checkARR
         //flush serial bufffer
         while (Serial.available() > 0) 
@@ -598,21 +603,6 @@ int hexToInt(int *arrSaveValue, int arr_len) {
     return rtnInt;
 }
 
-/*
-void handleGraph() {
-
-  int i;
-  String message;
-
-  for(i = 24; i < 536; i++) {
-    message += String(get_arr_graph[i]);
-    message += " ";
-  }
-  server.send(200, "text/html", message);
-  fillST(GET_GRAPH, WEB_REQ, GET_GRAPH, arrLisaKeyRX);
-}
-*/
-
 void waitRXArr ()
 {
     debug_println("waitRXArr");
@@ -659,30 +649,31 @@ void printGraph(int whichOne)
     }
 }
 
-
 void WifiSendGraph(){
 
     while (WiFi.status() != WL_CONNECTED) {
         delay(1000);
         debug_println("Connecting..");
     }
+
     if(WiFi.status() == WL_CONNECTED) {
-        http.begin(ROUTE_ADDRESS);      //Specify request destination
-        http.addHeader("Content-Type", "text/plain");  //Specify content-type header
        
         //String setup
         int i,j;
         for(i = 0; i < MAX_GRAPH_ARR; i++) {
+            http.begin(ROUTE_ADDRESS);      //Specify request destination
+            http.addHeader("Content-Type", "text/plain");  //Specify content-type header
             stringEmptySpace = String("Graph: ");
             for(j = 0; j < SAVE_GRAPH_POINTS; j++) {
                 stringEmptySpace += get_arr_graph[i][j];
                 stringEmptySpace += " ";
             }
             stringEmptySpace += ";";
-            int httpCode = http.POST(stringEmptySpace);   //Send the request
-            String payload = http.getString();                  //Get the response payload
-        }
+            debug_println("send Graph");
+            http.POST(stringEmptySpace);   //Send the request
+            //String payload = http.getString();                  //Get the response payload
         http.end();  //Close connection
+        }
     } else {
         //there shouldn't be error never!
         debug_println("ERROR: GRAPH DIDN't connect!");
@@ -690,53 +681,58 @@ void WifiSendGraph(){
 }
 
 void WifiSend() {
-  unsigned long currentMillis = millis();
-
+    //Waiting for connction, 
+    //before WiFi.status Wifi.begin must be called for connect
     while (WiFi.status() != WL_CONNECTED) {
         delay(1000);
         debug_println("Connecting..");
     }
 
-    if(WiFi.status() != WL_CONNECTED) {
-        debug_println("Slow connect timeMust be redo data will be lost");
-    } else {  
+    String payload;
+
+    stringEmptySpace = String("Measure: ");
+    //now must be connected but beter check again
+    if(WiFi.status() == WL_CONNECTED) {
         debug_println("WiFi connected");
         debug_println("IP address: ");
         debug_println(WiFi.localIP());
     
-        http.begin(ROUTE_ADDRESS);      //Specify request destination
-        http.addHeader("Content-Type", "text/plain");  //Specify content-type header
-       
-        //String setup
-        int httpCode;
-        String payload;
-
-        stringEmptySpace = String("Measure: ");
         int counterSendReg = 0;
         int i,j;
         for(i = 0; i < REG_MAX_LEN; i++) {
+        
+            //String setup
             for(j = 0; j < NUM_ARR_INT; j++) {
                 stringEmptySpace += saveAllArr[i][j];
                 stringEmptySpace += " ";
             }
             stringEmptySpace += ";";
             if((i+1) % 10 == 0.0){
-                httpCode = http.POST(stringEmptySpace);   //Send the request
-                payload = http.getString();                  //Get the response payload
+
+                debug_println("start");
+                http.begin(ROUTE_ADDRESS);      //Specify request destination
+                debug_println("begin");
+                http.addHeader("Content-Type", "text/plain");  //Specify content-type header
+                debug_println("Send Reg");
+                http.POST(stringEmptySpace);   //Send the request
+
+                debug_println("Send after");
+                //payload = http.getString();                  //Get the response 
                 //reset string
                 stringEmptySpace = String("Measure ");
                 stringEmptySpace += counterSendReg;
                 stringEmptySpace += String(" : ");
                 counterSendReg ++;
+                http.end();  //Close connection
+                debug_println("http.end");
             }
 
         }
 
  
-        debug_println(httpCode);   //Print HTTP return code
-        debug_println(payload);    //Print request response payload
+        //debug_println(httpCode);   //Print HTTP return code
+        //debug_println(payload);    //Print request response payload
  
-        http.end();  //Close connection
 
         //Send graph
         WifiSendGraph();

@@ -17,12 +17,13 @@ const char* password = "urur2377";
 const char* ssid = "TP-LINK_A23BA4";
 const char* password = "tamalasobca";
 //#define ROUTE_ADDRESS "http://poljch.home.kg:41856/"
-#define ROUTE_ADDRESS "http://92.37.26.33:41856/"
-
+//#define ROUTE_ADDRESS "http://92.37.26.33:41856/"
+#define DNS_WEBSITE "http://freedns.afraid.org/api/?action=getdyndns&v=2&sha=6ae24b051c3e17e3e3582243a98edb4eba6fc215"
 bool doneReadAll = false;
 const int led = 13;
 
 String stringEmptySpace;
+String FullSendReqestAddress;
 stMachine ST;
 
 MSG *tmpStc;
@@ -44,6 +45,7 @@ void setup()
     
     //WIFI setup
     WiFi.begin(ssid, password);   
+    getIpAddrFromDNSserver();
 }
 
 void loop()
@@ -148,6 +150,52 @@ void loop()
 */
         default:
             debug_println("default ST.state"); 
+        }
+}
+void getIpAddrFromDNSserver()
+{
+    WiFi.begin(ssid, password);   
+    //debug_print("curState:"); 
+
+
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(1000);
+        debug_println("Connecting..");
+    }
+    debug_println("We connectedd!");
+    delay(4000);
+
+    http.begin(DNS_WEBSITE);      //Specify request destination
+    http.addHeader("Content-Type", "text/plain");  //Specify content-type header
+       
+    //String setup
+    int httpCode;
+    String payload;  
+    if(http.GET() > 0 ){
+        payload = http.getString();   
+        String IPaddressFromDNS;
+        String EndOfDNS = "|";
+        String compareStr = "a";
+
+        int start_index_poljsh_DNS = payload.indexOf("poljsh");
+        start_index_poljsh_DNS = start_index_poljsh_DNS + 15; //shift to first IP number
+    
+        int ip_indx = 0;
+        while (compareStr != EndOfDNS) {
+            compareStr = payload.charAt(start_index_poljsh_DNS + ip_indx);
+            if(compareStr != EndOfDNS) {
+                IPaddressFromDNS += payload.charAt(start_index_poljsh_DNS + ip_indx);
+            }
+            ip_indx ++;
+        }
+
+        FullSendReqestAddress += "http://";
+        FullSendReqestAddress += IPaddressFromDNS;
+        FullSendReqestAddress += ":41856/";
+        debug_println("RESOULT:"); 
+        debug_println(FullSendReqestAddress); 
+        } else {
+            ESP.reset();
         }
 }
 
@@ -661,7 +709,7 @@ void WifiSendGraph(){
         //String setup
         int i,j;
         for(i = 0; i < MAX_GRAPH_ARR; i++) {
-            http.begin(ROUTE_ADDRESS);      //Specify request destination
+            http.begin(FullSendReqestAddress);      //Specify request destination
             http.addHeader("Content-Type", "text/plain");  //Specify content-type header
             stringEmptySpace = String("Graph: ");
             for(j = 0; j < SAVE_GRAPH_POINTS; j++) {
@@ -700,7 +748,6 @@ void WifiSend() {
         int counterSendReg = 0;
         int i,j;
         for(i = 0; i < REG_MAX_LEN; i++) {
-        
             //String setup
             for(j = 0; j < NUM_ARR_INT; j++) {
                 stringEmptySpace += saveAllArr[i][j];
@@ -710,11 +757,14 @@ void WifiSend() {
             if((i+1) % 10 == 0.0){
 
                 debug_println("start");
-                http.begin(ROUTE_ADDRESS);      //Specify request destination
+                http.begin(FullSendReqestAddress);      //Specify request destination
                 debug_println("begin");
                 http.addHeader("Content-Type", "text/plain");  //Specify content-type header
                 debug_println("Send Reg");
-                http.POST(stringEmptySpace);   //Send the request
+                if(http.POST(stringEmptySpace) < 0)
+                    getIpAddrFromDNSserver();   //Send the request
+
+
 
                 debug_println("Send after");
                 //payload = http.getString();                  //Get the response 

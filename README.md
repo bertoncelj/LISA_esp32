@@ -1,78 +1,82 @@
 LOG:
+
 26.3 : CONCLUSIONS: 
         1. Serial is on pin Rx Tx and it was using for debuging on serial monitor of arduino
            because it is also set on USB C mini, so PC can see it.
            For outSerial (sending message out to lISA)
-## INFO:           
-    BUY LIST:
-    * Male pins for displays
+## INFO           
+
+BUY LIST
+
+* Male pins for displays
 
 ## SERIAL_DEBUG:
 
-    On ESP Connect TTL cable to:
-    ESP       TTL
-    D4    ->  white one (Rx)
-    GND   ->  GND
+On ESP Connect TTL cable to:
 
-    In terminal: 
+ESP       TTL
+D4    ->  white one (Rx)
+GND   ->  GND
 
-    ```
-    gtkterm -p /dev/ttyUSB1 -s 19200
-    ```
-    Here you choose ttyUSB0 or ttyUSB1 later in config. bar uptop.
+In terminal: 
+
+```
+gtkterm -p /dev/ttyUSB1 -s 19200
+```
+ Here you choose ttyUSB0 or ttyUSB1 later in config. bar uptop.
 
 ## SSH connect to Server 
     
 ### Outside:
-    Connect To RPi:
-    
-    ```
-     ssh anzepi@poljch.home.kg -p 12322
-    ```
+Connect To RPi:    
+ 
+```
+ssh anzepi@poljch.home.kg -p 12322
+```
 
-    From RPi to Server connect by:
+From RPi to Server connect by:
 
-    ```
-     ssh anze@192.168.1.30
-    ```
+```
+ssh anze@192.168.1.30
+```
 
-    In server check if running;
+In server check if running;
 
-    ```
-    tmux ls
-    ```
+```
+tmux ls
+```
 
-    Or connect directly to server to see content:
+ Or connect directly to server to see content:
 
-    ```
-    tmux a
-    ```
+```
+tmux a
+```
     
      
 ### Local:
-    Connect To RPi:
+Connect To RPi:
     
-    ```
-     ssh anzepi@192.168.1.88
-    ```
+```
+ssh anzepi@192.168.1.88
+```
 
-    From RPi to Server connect by:
+From RPi to Server connect by:
 
-    ```
-     ssh anze@192.168.1.30
-    ```
+```
+ssh anze@192.168.1.30
+```
 
-    In server check if running;
+In server check if running;
 
-    ```
-    tmux ls
-    ```
+```
+tmux ls
+```
 
-    Or connect directly to server to see content:
+ Or connect directly to server to see content:
 
-    ```
-    tmux a
-    ```
+```
+tmux a
+```
 
 ## CONNECT PROTOCOL for ALISA:
 

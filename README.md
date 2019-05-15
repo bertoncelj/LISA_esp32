@@ -14,8 +14,10 @@ BUY LIST
 
 On ESP Connect TTL cable to:
 
-ESP       TTL
+ESP.......TTL
+
 D4    ->  white one (Rx)
+
 GND   ->  GND
 
 In terminal: 

@@ -3,28 +3,79 @@ LOG:
         1. Serial is on pin Rx Tx and it was using for debuging on serial monitor of arduino
            because it is also set on USB C mini, so PC can see it.
            For outSerial (sending message out to lISA)
-           
+## INFO:           
+    BUY LIST:
+    * Male pins for displays
 
-SERIAL_DEBUG:
-     gtkterm -p /dev/ttyUSB1 -s 19200
+## SERIAL_DEBUG:
 
-### NABAVA
+    On ESP Connect TTL cable to:
+    ESP       TTL
+    D4    ->  white one (Rx)
+    GND   ->  GND
 
-    Letvice (lojtrce)
+    In terminal: 
 
-### Server
-    Send packet on poljch.home.kg
-    5000 
+    ```
+    gtkterm -p /dev/ttyUSB1 -s 19200
+    ```
+    Here you choose ttyUSB0 or ttyUSB1 later in config. bar uptop.
 
+## SSH connect to Server 
+    
+### Outside:
+    Connect To RPi:
+    
+    ```
+     ssh anzepi@poljch.home.kg -p 12322
+    ```
 
-### SSH connect
+    From RPi to Server connect by:
 
-    ssh poljch.home.kg@anze -p 41856
+    ```
+     ssh anze@192.168.1.30
+    ```
 
+    In server check if running;
 
+    ```
+    tmux ls
+    ```
 
+    Or connect directly to server to see content:
 
-## CONNECT PROTOCOL:
+    ```
+    tmux a
+    ```
+    
+     
+### Local:
+    Connect To RPi:
+    
+    ```
+     ssh anzepi@192.168.1.88
+    ```
+
+    From RPi to Server connect by:
+
+    ```
+     ssh anze@192.168.1.30
+    ```
+
+    In server check if running;
+
+    ```
+    tmux ls
+    ```
+
+    Or connect directly to server to see content:
+
+    ```
+    tmux a
+    ```
+
+## CONNECT PROTOCOL for ALISA:
+
 BREAK
 01 42 30 03 71  " B0 q"
 

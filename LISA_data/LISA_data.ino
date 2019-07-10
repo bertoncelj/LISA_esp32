@@ -7,12 +7,12 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 
-const char* ssid = "TP-LINK";
-const char* password = "poljchSpodnjiGeslo";
+//const char* ssid = "TP-LINK";
+//const char* password = "poljchSpodnjiGeslo";
 
 //Lipnica
-//const char* ssid = "TP-LINK_A23BA4";
-//const char* password = "tamalasobca";
+const char* ssid = "TP-LINK";
+const char* password = "tamalasobca";
 
 ESP8266WebServer server(80);
 

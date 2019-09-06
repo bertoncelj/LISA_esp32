@@ -1,0 +1,30 @@
+Popora napak za foriranje SMS, ki nedelajo dober
+Ko se naprava skofigurira (anže) pošlje nazaj če se je pravilo upgradala
+SMS Rafko table poprava da bodo SMS porov letel notr textovno v pravilno zapisani obliki.
+(Jure trenutno dobi samo FW verzijo preko SMS)
+
+Najprej pogljmo kako to pošilja:
+	ALARM ko pošlje alarm MORA dobit od strežnika potrdatev da je alarm sprejv. Drugač pošlje šenkrat.
+	TEXT DNEVNA MERITEV-INFO 1. paramater kdaj se info pošlje, ura (1 dan)
+					2. 
+Nato stestiri binarne pošiljaneje če to dela: (še nevemo če protokol prov dela)
+	BINARNI PODATK- pošlje 1 na dan vse meritve na pol ure (napretost, kot, baterija, od 	vsake pol ure)
+
+IDIFIKACIJA BATERIJE da je prazna. Določi kakna je meja. (da so to doda v parametre kdaj je batarija low)
+
+
+
+
+SOLARNE NAPAJANJE.
+1.Takrat se pošiljajo podatki bolj pogosto. Pod parameter koliko krat se podati pošiljajo na 1h 2h 3h ... Sam če majo solaren napajanje
+2. Solaren sistem ima status, in ko ma status low, se LISA preklopia na varčen način in obratno. 
+3. Se vključi še podatkoven prenos preko DataMobile g5
+
+
+A.) UPgRADE NA DALJAVO - ZELO STESTIRAT NUJNO
+(Matajž Finc)
+
+
+
+
+

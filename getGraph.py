@@ -74,7 +74,7 @@ def lisa_mer(contents):
 
 script, file_path, meritev = argv
 
-contents = urllib.request.urlopen("http://192.168.1.51/g").read()
+contents = urllib.request.urlopen("http://192.168.1.100/g").read()
 print(contents)
 str2 = lisa_mer(contents)
 

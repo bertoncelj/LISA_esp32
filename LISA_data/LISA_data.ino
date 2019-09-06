@@ -7,12 +7,12 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 
-const char* ssid = "TP-LINK";
-const char* password = "poljchSpodnjiGeslo";
+//const char* ssid = "TP-LINK";
+//const char* password = "poljchSpodnjiGeslo";
 
 //Lipnica
-//const char* ssid = "TP-LINK_A23BA4";
-//const char* password = "tamalasobca";
+const char* ssid = "TP-LINK";
+const char* password = "tamalasobca";
 
 ESP8266WebServer server(80);
 
@@ -258,7 +258,7 @@ bool checkIfCorrectData()
     else {
         debug_println("ERROR: arrays are diff len");
         server.send(200, "text/plain", "RESET");
-        delay(5000);
+        delay(500);
         //next from curr checkARR
         //flush serial bufffer
         while (Serial.available() > 0) 
@@ -492,83 +492,8 @@ void handleMain() {
         char temp[3000];
 
         debug_println("print website !");
-        snprintf(temp, 2500, 
-        "<html>\
-        <head>\
-        <meta http-equiv='refresh' content='8'/>\
-        <style>\
-        table, th, td {\
-        \
-        border-collapse: collapse;\
-        }\
-        th, td {\
-        padding: 15px;\
-        text-align: center;\
-        }\
-        table#t01 {\
-        width: 100%;    \
-        background-color: #f1f1c1;\
-        }\
-        </style>\
-        </head>\
-        <body>\
-        \
-        <h1 align=\"center\" style=\"color:red;\">ALISA DATA</h1>\
-        <h3>Measurements: %d </h3>\
-        <h3 align=\"center\" style=\"color:blue;\">-----------  Measurements ----------</h3>\
-        <table style=\"width:100%\">\
-        <tr>\
-            <th style=\"color:blue;\">Left</th>\
-            <th></th> \
-            <th style=\"color:blue;\">Right</th>\
-        </tr>\
-        <tr>\
-            <td>U1: <font size=\"6\"><b>%d</b></font></td>\
-            <td>Upop: <font size=\"6\"><b>%d</b></font></td>\
-            <td>U2: <font size=\"6\"><b>%d</b></font></td>\
-        </tr>\
-        <tr>\
-            <td>ANG1: <font size=\"6\"><b>%d</b></font></td>\
-            <td>ANG_tot: <font size=\"6\"><b>%d</b></font></td>\
-            <td>ANG2: <font size=\"6\"><b>%d</b></font></td>\
-        </tr>\
-        <tr>\
-        </tr>\
-        </table>\
-        <br>\
-        <h3 align=\"center\" style=\"color:blue;\">-----------  Measurements amplified ----------</h3>\
-        <table id=\"t01\">\
-        <tr>\
-            <th style=\"color:blue;\">Left</th>\
-            <th></th> \
-            <th style=\"color:blue;\">Right</th>\
-        </tr>\
-        <tr>\
-            <td>U3: <font size=\"6\"><b>%d</b></font></td>\
-            <td></td>\
-            <td>U4: <font size=\"6\"><b>%d</b></font></td>\
-        </tr>\
-        <tr>\
-            <td>ANG3: <font size=\"6\"><b>%d</b></font></td>\
-            <td></td>\
-            <td>ANG4: <font size=\"6\"><b>%d</b></font></td>\
-        </tr>\
-        <tr>\
-        \
-        </tr>\
-        </table>\
-        <h3></h3>\
-        <h3 style=\"color:blue;\">----------- General Inforamtion ----------</h3>\
-        <h3>Battery Voltage: %d mV</h3>\
-        <h3>Temperature: %d C</h3>\
-        </body>\
-        </html>\
-            ",
-            lisa_index,
-            lisa_U1, lisa_Upov, lisa_U2, lisa_ANG1, lisa_ANG_tot1, lisa_ANG2,
-            lisa_U3, lisa_U4, lisa_ANG3, lisa_ANG4,
-            lisa_Vbat, lisa_temp
-        );
+        snprintf(temp, 3000, 
+        "HELLO"   );
 
         server.send(200, "text/html", temp);
         digitalWrite(led, 0);

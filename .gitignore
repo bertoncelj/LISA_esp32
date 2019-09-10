@@ -16,6 +16,7 @@ __pycache__/
 tmp/
 temp/
 stuk/
+Measurements/Poligon_Slike/
 
 #ignore for debuging
 Output.txt

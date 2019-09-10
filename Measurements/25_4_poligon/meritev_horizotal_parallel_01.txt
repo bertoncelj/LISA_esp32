@@ -1,5 +1,5 @@
 Meritve 16:36 konc, lep vreme, mal veter Prve resne meritve, vzorec x
-0.76 med stangama precnima  
+0.76 med stangama precnima  4
 1.50 <-> 
 2.70 nosilec lisa do kabla zgornjea
 2.40 od antene do kabla
